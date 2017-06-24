@@ -1,0 +1,12 @@
+param n := 2;
+
+
+param c := 10;
+
+param: ITEMS: l d s t := 
+		Item0 10 10 1 5 
+		Item1 10 10 6 10
+		Item2 50 10 1 10
+	;
+	
+	end;
