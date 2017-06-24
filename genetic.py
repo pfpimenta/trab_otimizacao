@@ -22,8 +22,6 @@ def getItemList( inp ):
 
     return itemList
 
-
-
 ### main ###
 if (len(sys.argv) < 2 or len(sys.argv) > 2):
     print "\nERRO: numero invalido de argumentos\n\n"
@@ -31,7 +29,7 @@ if (len(sys.argv) < 2 or len(sys.argv) > 2):
 
 inp = open(sys.argv[1], 'rU').read().splitlines()
 
-numItens = int(inp[0])
+numItems = int(inp[0])
 capacity = int(inp[1])
 
 inp.remove(inp[0])   #  delete those 2 lines we've already used so we're left with the items themselves only
@@ -39,3 +37,5 @@ inp.remove(inp[0])
 
 itemList = getItemList(inp)
 #print itemList #debug
+
+solution =[ 0 for i in range(numItems+1)] #initialization
