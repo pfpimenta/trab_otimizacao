@@ -28,9 +28,6 @@ param s_max := max{i in ITEMS} t[i];
 var X{i in ITEMS} binary;
 /* 1 if item i has been selected and 0 otherwise */
 
-var Y{i in ITEMS, j in s_min..s_max} binary;
-/* 1 if the item i is selected and uses the second j; 0  otherwise */
-
 maximize profit: sum{i in ITEMS} X[i]*l[i];
 /* our goal is to maximize the profit */
 
