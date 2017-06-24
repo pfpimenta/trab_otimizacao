@@ -12,7 +12,7 @@ Pedro Foletto Pimenta
 
 
 
-#project description
+# project description
 
 An implementation of a genetic algorithm [1] for solving the Temporal Knapsack problem [2].
 
