@@ -10,6 +10,9 @@ import numpy as np
 #metaparametros do aloritmo genetico
 POPULATION_SIZE = 10
 NUM_GERACOES = 25 # nao sei se isso pode #TODO
+PROB_MUTACAO = 0.5 # probabilidade de uma nova solucao sofrer mutacao
+TAXA_MUTACAO = 0.2 # porcentagem de genes q sao alterados por uma mutacao
+
 
 def getItemList( inp ):
     #receives the input instance without the first 2 lines
@@ -77,6 +80,12 @@ def getBestSolution(population, populationValues):
             bestSolution = list(population[i])
     return bestSolution, bestSolutionValue
 
+def mutation(solution, numItems):
+    for i in range(int(numItems*TAXA_MUTACAO)):
+        randomIndex = random.randint(0,numItems-1)
+        solution[randomIndex] = (1 - solution[randomIndex])
+    return solution
+
 def generateNewPopulation(population, populationValues, itemList, numItems):
     #TODO
     #sort population by solution values
@@ -86,6 +95,8 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
     newPopulation.append(bestSolution)
     for i in range(POPULATION_SIZE-1):
         newSolution = list(generateNewSolution(population, populationValues, itemList, numItems))
+        if(random.random() < PROB_MUTACAO):
+            newSolution = mutation(newSolution, numItems)
         newPopulation.append(list(newSolution))
     return newPopulation
 
@@ -142,7 +153,7 @@ inp.remove(inp[0])   #  delete those 2 lines we've already used so we're left wi
 inp.remove(inp[0])
 
 itemList = getItemList(inp)
-print itemList #debug
+#print itemList #debug
 
 solution =[ 0 for i in range(numItems+1)] #initialization
 
