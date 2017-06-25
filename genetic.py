@@ -5,9 +5,10 @@
 
 import sys
 import random
+import numpy as np
 
 #metaparametros do aloritmo genetico
-POPULATION_SIZE = 20
+POPULATION_SIZE = 10
 NUM_GERACOES = 25 # nao sei se isso pode #TODO
 
 def getItemList( inp ):
@@ -40,37 +41,79 @@ def generateInitialPopulation(numItems, seed):
 
     return population
 
+def getPopulationProbabilities(populationValues):
+    # generates probabilites (summing 1) for picking each solution
+    # based on the solution values
+    populationProbabilities = [0 for i in range(POPULATION_SIZE)]
 
-def generateNewPopulation(population, populationValues):
+    sumExps = 0
+    for i in range(POPULATION_SIZE):
+        sumExps += np.exp(populationValues[i])
+
+    for i in range(POPULATION_SIZE):
+        populationProbabilities[i] = np.exp(populationValues[i])/ sumExps
+
+    return populationProbabilities
+
+def generateNewSolution(population, populationValues, itemList, numItems):
+    populationProbabilities = getPopulationProbabilities(populationValues)
+    index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities)
+    #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
+    newSolution = [0 for i in range(numItems)]
+    for i in range(numItems):
+        if (i > (numItems/2)):
+            newSolution[i] = population[index1][i]
+        else:
+            newSolution[i] = population[index2][i]
+
+    return newSolution
+
+def getBestSolution(population, populationValues):
+    bestSolution = list(population[0])
+    bestSolutionValue = -1
+    for i in range(POPULATION_SIZE):
+        if(populationValues[i] >= bestSolutionValue):
+            bestSolutionValue = populationValues[i]
+            bestSolution = list(population[i])
+    return bestSolution, bestSolutionValue
+
+def generateNewPopulation(population, populationValues, itemList, numItems):
     #TODO
-    pass
+    #sort population by solution values
+    #newPopulation = sorted(population, key= lambda solution: getSolutionValue(solution, itemList))
+    newPopulation = []
+    bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
+    newPopulation.append(bestSolution)
+    for i in range(POPULATION_SIZE-1):
+        newSolution = list(generateNewSolution(population, populationValues, itemList, numItems))
+        newPopulation.append(list(newSolution))
+    return newPopulation
 
-def getSolutionTotalWeight(solution, itemList):
+def getSolutionTotalWeight(solution, itemList, numItems):
     #get total backpack weight for a solution
     totalWeight = 0
-    for i in solution:
-        if i:
+    for i in range(numItems):
+        if solution[i]:
             totalWeight += itemList[i]['weight']
     return totalWeight
 
-def getSolutionValue(solution, itemList):
+def getSolutionValue(solution, itemList, numItems):
     #get total backpack value for a solution
     solutionValue = 0
-    for i in solution:
-        if i:
+    for i in range(numItems):
+        if solution[i]:
             solutionValue += itemList[i]['value']
     return solutionValue
 
 
-def evaluatePopulation(population, itemList, capacity):
-    #TODO
+def evaluatePopulation(population, itemList, capacity, numItems):
     populationValues = [0 for i in range(POPULATION_SIZE)]
     for i in range(POPULATION_SIZE):
-        totalWeight = getSolutionTotalWeight(population[i], itemList)
+        totalWeight = getSolutionTotalWeight(population[i], itemList, numItems)
         if (totalWeight > capacity): #solucao invalida, acima da capacidade
             populationValues[i] = -1
         else:
-            populationValues[i] = getSolutionValue(population[i], itemList)
+            populationValues[i] = getSolutionValue(population[i], itemList, numItems)
     return populationValues
 
 def printPopulationAndValues(population, populationValues):
@@ -99,7 +142,7 @@ inp.remove(inp[0])   #  delete those 2 lines we've already used so we're left wi
 inp.remove(inp[0])
 
 itemList = getItemList(inp)
-#print itemList #debug
+print itemList #debug
 
 solution =[ 0 for i in range(numItems+1)] #initialization
 
@@ -108,16 +151,20 @@ populationValues = [ 0 for i in range(POPULATION_SIZE)]
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
-    populationValues = evaluatePopulation(population, itemList, capacity)
+    populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-    print "\n\n-> geracao " + str(i)
-    printPopulationAndValues(population, populationValues)
+    if i == 0 or True: #debug
+        print "\n\n-> geracao " + str(i)
+        printPopulationAndValues(population, populationValues)
 
     #gera nova populacao de solucoes
-    generateNewPopulation(population, populationValues)
+    population = generateNewPopulation(population, populationValues, itemList, numItems)
 
 
-populationValues = evaluatePopulation(population)
+populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
 print "\n\n --- solucao final ---\n"
 printPopulationAndValues(population, populationValues)
+print "\ --- melhor solucao encontrada ---"
+bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
+print str(bestSolution) + "\nvalor: " + str(bestSolutionValue)
