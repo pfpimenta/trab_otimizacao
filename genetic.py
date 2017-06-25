@@ -30,6 +30,8 @@ def generateInitialPopulation(numItems, seed):
     #TODO
     #refazer: ta totalmente aleatorio por enquanto, nao precisa ser
     random.seed(a=hash(seed))
+
+    #solution[i] == 1 se o itemList[i] ta na mochila
     solution = [ 0 for i in range(numItems)]
     population = []
     for i in range(POPULATION_SIZE):
@@ -43,9 +45,32 @@ def generateNewPopulation(population, populationValues):
     #TODO
     pass
 
-def evaluatePopulation(population):
+def getSolutionTotalWeight(solution, itemList):
+    #get total backpack weight for a solution
+    totalWeight = 0
+    for i in solution:
+        if i:
+            totalWeight += itemList[i]['weight']
+    return totalWeight
+
+def getSolutionValue(solution, itemList):
+    #get total backpack value for a solution
+    solutionValue = 0
+    for i in solution:
+        if i:
+            solutionValue += itemList[i]['value']
+    return solutionValue
+
+
+def evaluatePopulation(population, itemList, capacity):
     #TODO
     populationValues = [0 for i in range(POPULATION_SIZE)]
+    for i in range(POPULATION_SIZE):
+        totalWeight = getSolutionTotalWeight(population[i], itemList)
+        if (totalWeight > capacity): #solucao invalida, acima da capacidade
+            populationValues[i] = -1
+        else:
+            populationValues[i] = getSolutionValue(population[i], itemList)
     return populationValues
 
 def printPopulationAndValues(population, populationValues):
@@ -82,10 +107,12 @@ population = generateInitialPopulation(numItems,seed)
 populationValues = [ 0 for i in range(POPULATION_SIZE)]
 
 for i in range(NUM_GERACOES):
+    #avalia a populacao de solucoes
+    populationValues = evaluatePopulation(population, itemList, capacity)
+
     print "\n\n-> geracao " + str(i)
     printPopulationAndValues(population, populationValues)
-    #avalia a populacao de solucoes
-    populationValues = evaluatePopulation(population)
+
     #gera nova populacao de solucoes
     generateNewPopulation(population, populationValues)
 
