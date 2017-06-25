@@ -48,6 +48,12 @@ def evaluatePopulation(population):
     populationValues = [0 for i in range(POPULATION_SIZE)]
     return populationValues
 
+def printPopulationAndValues(population, populationValues):
+    print "...printing population and its values...\n"
+    for i in range(POPULATION_SIZE):
+        print "solucao: " + str(population[i]) +" valor: " +str(populationValues[i])
+
+
 
 ############
 ### main ###
@@ -75,7 +81,9 @@ solution =[ 0 for i in range(numItems+1)] #initialization
 population = generateInitialPopulation(numItems,seed)
 populationValues = [ 0 for i in range(POPULATION_SIZE)]
 
-for i in range(POPULATION_SIZE):
+for i in range(NUM_GERACOES):
+    print "\n\n-> geracao " + str(i)
+    printPopulationAndValues(population, populationValues)
     #avalia a populacao de solucoes
     populationValues = evaluatePopulation(population)
     #gera nova populacao de solucoes
@@ -84,5 +92,5 @@ for i in range(POPULATION_SIZE):
 
 populationValues = evaluatePopulation(population)
 
-print "\n---\nPOPULATION:\n" + str(population)
-print "\n---\nPOPULATION VALUES:\n" + str(populationValues)
+print "\n\n --- solucao final ---\n"
+printPopulationAndValues(population, populationValues)
