@@ -4,8 +4,11 @@
 # python genetic.py tkp_instances/U2
 
 import sys
+import random
 
-
+#metaparametros do aloritmo genetico
+POPULATION_SIZE = 20
+NUM_GERACOES = 25 # nao sei se isso pode #TODO
 
 def getItemList( inp ):
     #receives the input instance without the first 2 lines
@@ -22,10 +25,39 @@ def getItemList( inp ):
 
     return itemList
 
+def generateInitialPopulation(numItems, seed):
+    # generates initial population based on the seed
+    #TODO
+    #refazer: ta totalmente aleatorio por enquanto, nao precisa ser
+    random.seed(a=hash(seed))
+    solution = [ 0 for i in range(numItems)]
+    population = []
+    for i in range(POPULATION_SIZE):
+        solution = [random.randint(0, 1) for j in range(numItems)]
+        population.append(list(solution))
+
+    return population
+
+
+def generateNewPopulation(population, populationValues):
+    #TODO
+    pass
+
+def evaluatePopulation(population):
+    #TODO
+    populationValues = [0 for i in range(POPULATION_SIZE)]
+    return populationValues
+
+
+############
 ### main ###
-if (len(sys.argv) < 2 or len(sys.argv) > 2):
-    print "\nERRO: numero invalido de argumentos\n\n"
+############
+if (len(sys.argv) < 3 or len(sys.argv) > 3):
+    print "\nERRO: numero invalido de argumentos\n"
+    print "'python genetic.py inputFile seed'\n\n"
     sys.exit(1)
+
+seed = sys.argv[2]
 
 inp = open(sys.argv[1], 'rU').read().splitlines()
 
@@ -39,3 +71,18 @@ itemList = getItemList(inp)
 #print itemList #debug
 
 solution =[ 0 for i in range(numItems+1)] #initialization
+
+population = generateInitialPopulation(numItems,seed)
+populationValues = [ 0 for i in range(POPULATION_SIZE)]
+
+for i in range(POPULATION_SIZE):
+    #avalia a populacao de solucoes
+    populationValues = evaluatePopulation(population)
+    #gera nova populacao de solucoes
+    generateNewPopulation(population, populationValues)
+
+
+populationValues = evaluatePopulation(population)
+
+print "\n---\nPOPULATION:\n" + str(population)
+print "\n---\nPOPULATION VALUES:\n" + str(populationValues)
