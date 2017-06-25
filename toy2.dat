@@ -1,4 +1,4 @@
-param n := 101;
+param n := 301;
 
 
 param c := 500;

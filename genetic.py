@@ -1,17 +1,17 @@
 # this script receives a temporal knapsack instance such as U2
 # and generates a new (.sol ??? ou txt mesmo???) file containing a solution for the instance
 # usage example:
-# python genetic.py tkp_instances/U2
+# python genetic.py tkp_instances/U2 123seedLok4
 
 import sys
 import random
 import numpy as np
 
 #metaparametros do aloritmo genetico
-POPULATION_SIZE = 10
-NUM_GERACOES = 25 # nao sei se isso pode #TODO
-PROB_MUTACAO = 0.5 # probabilidade de uma nova solucao sofrer mutacao
-TAXA_MUTACAO = 0.2 # porcentagem de genes q sao alterados por uma mutacao
+POPULATION_SIZE = 100
+NUM_GERACOES = 50 # nao sei se isso pode #TODO
+PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
+TAXA_MUTACAO = 0.5 # porcentagem de genes q sao alterados por uma mutacao
 
 
 def getItemList( inp ):
@@ -164,7 +164,7 @@ for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-    if i == 0 or True: #debug
+    if False: #i == 0 or True: #debug
         print "\n\n-> geracao " + str(i)
         printPopulationAndValues(population, populationValues)
 
