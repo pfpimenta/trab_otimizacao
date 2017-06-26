@@ -52,7 +52,7 @@ def generateInitialPopulation(numItems, seed):
 
     return population
 
-def getPopulationProbabilities(populationValues):
+def getPopulationProbabilities(populationValues): #original version
     # generates probabilites (summing 1) for picking each solution
     # based on the solution values
     populationProbabilities = [0 for i in range(POPULATION_SIZE)]
@@ -66,8 +66,25 @@ def getPopulationProbabilities(populationValues):
 
     return populationProbabilities
 
+def getSquaredPopulationProbabilities(populationValues): #alternative version
+    # generates probabilites (summing 1) for picking each solution
+    # based on the solution values SQUARED
+    populationProbabilities = [0 for i in range(POPULATION_SIZE)]
+
+    sumExps = 0
+    for i in range(POPULATION_SIZE):
+        valueSquared = (populationValues[i])*(populationValues[i])/100
+        sumExps += np.exp(valueSquared)
+
+    for i in range(POPULATION_SIZE):
+        valueSquared = (populationValues[i])*(populationValues[i])/100
+        populationProbabilities[i] = np.exp(valueSquared)/ sumExps
+
+    return populationProbabilities
+
 def generateNewSolution(population, populationValues, itemList, numItems):
     populationProbabilities = getPopulationProbabilities(populationValues)
+    #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
     index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities)
     #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
     newSolution = [0 for i in range(numItems)]
