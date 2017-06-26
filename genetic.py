@@ -9,9 +9,11 @@ import numpy as np
 
 #metaparametros do aloritmo genetico
 POPULATION_SIZE = 100
-NUM_GERACOES = 50 # nao sei se isso pode #TODO
+NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.5 # porcentagem de genes q sao alterados por uma mutacao
+PROB_INITIAL_SOLUTION = 0.01 # probabilidade de cada gene ser ==1 em uma solucao inicial
+STABLE_ITERS_STOP =  10 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
 def getItemList( inp ):
@@ -29,17 +31,23 @@ def getItemList( inp ):
 
     return itemList
 
+def choseWithProb( oneProb ):
+    zeroProb = 1 - oneProb
+    result = np.random.choice([0,1], 1, p= [zeroProb, oneProb ])[0]
+    return result
+
 def generateInitialPopulation(numItems, seed):
     # generates initial population based on the seed
     #TODO
     #refazer: ta totalmente aleatorio por enquanto, nao precisa ser
-    random.seed(a=hash(seed))
 
     #solution[i] == 1 se o itemList[i] ta na mochila
     solution = [ 0 for i in range(numItems)]
     population = []
     for i in range(POPULATION_SIZE):
-        solution = [random.randint(0, 1) for j in range(numItems)]
+        #generates a random solution
+        solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
+        #solution = [random.randint(0, 1) for j in range(numItems)]
         population.append(list(solution))
 
     return population
@@ -64,7 +72,7 @@ def generateNewSolution(population, populationValues, itemList, numItems):
     #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
     newSolution = [0 for i in range(numItems)]
     for i in range(numItems):
-        if (i > (numItems/2)):
+        if choseWithProb(0.5):
             newSolution[i] = population[index1][i]
         else:
             newSolution[i] = population[index2][i]
@@ -124,13 +132,34 @@ def evaluatePopulation(population, itemList, capacity, numItems):
         if (totalWeight > capacity): #solucao invalida, acima da capacidade
             populationValues[i] = -1
         else:
-            populationValues[i] = getSolutionValue(population[i], itemList, numItems)
+            populationValues[i] = int(getSolutionValue(population[i], itemList, numItems))
     return populationValues
 
 def printPopulationAndValues(population, populationValues):
     print "...printing population and its values...\n"
     for i in range(POPULATION_SIZE):
         print "solucao: " + str(population[i]) +" valor: " +str(populationValues[i])
+
+def printPopulationValues( populationValues):
+    print "...printing population values...\n"
+    for i in range(POPULATION_SIZE):
+        print "solucao " + str(i) +": valor: " +str(populationValues[i])
+
+def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolution):
+    # returns stableSolutionCounter, currentBestSolution, and the endLoop
+    bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
+    if (currentBestSolution == bestSolution):
+        stableSolutionCounter += 1
+    elif(currentBestSolution > bestSolution):
+        print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
+    else: # currentBestSolution < bestSolution
+        currentBestSolution = bestSolution
+        stableSolutionCounter = 0
+    #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
+    if (stableSolutionCounter >= STABLE_ITERS_STOP):
+        return stableSolutionCounter, currentBestSolution, 1
+    else:
+        return stableSolutionCounter, currentBestSolution, 0
 
 
 
@@ -143,6 +172,8 @@ if (len(sys.argv) < 3 or len(sys.argv) > 3):
     sys.exit(1)
 
 seed = sys.argv[2]
+random.seed(a=hash(seed))
+np.random.seed(hash(seed))
 
 inp = open(sys.argv[1], 'rU').read().splitlines()
 
@@ -159,14 +190,23 @@ solution =[ 0 for i in range(numItems+1)] #initialization
 
 population = generateInitialPopulation(numItems,seed)
 populationValues = [ 0 for i in range(POPULATION_SIZE)]
+stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
+currentBestSolution = -1
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-    if False: #i == 0 or True: #debug
+    stableSolutionCounter, currentBestSolution, endLoop =  endLoopCondition(populationValues, stableSolutionCounter, currentBestSolution)
+    if (endLoop):
+        print "\nendLoopCondition atingida: " +str(STABLE_ITERS_STOP) +" iteracoes sem mudancas na melhor solucao"
+        print "(geracao " +str(i) +")"
+        break;
+
+    if i==0 or i == int(NUM_GERACOES*2/3): #debug
         print "\n\n-> geracao " + str(i)
-        printPopulationAndValues(population, populationValues)
+        #printPopulationAndValues(population, populationValues)
+        printPopulationValues( populationValues)
 
     #gera nova populacao de solucoes
     population = generateNewPopulation(population, populationValues, itemList, numItems)
@@ -174,8 +214,9 @@ for i in range(NUM_GERACOES):
 
 populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-print "\n\n --- solucao final ---\n"
-printPopulationAndValues(population, populationValues)
-print "\ --- melhor solucao encontrada ---"
+print "\n\n --- populacao final ---\n"
+#printPopulationAndValues(population, populationValues)
+printPopulationValues( populationValues)
+print "\n --- melhor solucao encontrada ---"
 bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
 print str(bestSolution) + "\nvalor: " + str(bestSolutionValue)
