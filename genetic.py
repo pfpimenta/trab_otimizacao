@@ -6,6 +6,7 @@
 import sys
 import random
 import numpy as np
+import math
 
 #metaparametros do aloritmo genetico
 POPULATION_SIZE = 100
@@ -13,6 +14,7 @@ NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.5 # porcentagem de genes q sao alterados por uma mutacao
 PROB_INITIAL_SOLUTION = 0.01 # probabilidade de cada gene ser ==1 em uma solucao inicial
+#PROB_INITIAL_SOLUTION podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  10 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
@@ -47,7 +49,8 @@ def generateInitialPopulation(numItems, seed):
     for i in range(POPULATION_SIZE):
         #generates a random solution
         solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
-        #solution = [random.randint(0, 1) for j in range(numItems)]
+        #prob = (2/math.sqrt(numItems)) / (1 + 2/math.sqrt(numItems))
+        #solution = [choseWithProb(prob) for j in range(numItems)] # versao alternativa
         population.append(list(solution))
 
     return population
@@ -120,7 +123,7 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
     newPopulation.append(bestSolution)
     for i in range(POPULATION_SIZE-1):
         newSolution = list(generateNewSolution(population, populationValues, itemList, numItems))
-        if(random.random() < PROB_MUTACAO):
+        if(choseWithProb(PROB_MUTACAO)):
             newSolution = mutation(newSolution, numItems)
         newPopulation.append(list(newSolution))
     return newPopulation
@@ -159,24 +162,24 @@ def printPopulationAndValues(population, populationValues):
 
 def printPopulationValues( populationValues):
     print "...printing population values...\n"
-    for i in range(POPULATION_SIZE):
-        print "solucao " + str(i) +": valor: " +str(populationValues[i])
+    print str(populationValues)
 
-def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolution):
-    # returns stableSolutionCounter, currentBestSolution, and the endLoop
+def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutionValue):
+    # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
-    if (currentBestSolution == bestSolution):
+    if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
-    elif(currentBestSolution > bestSolution):
+    elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
+        print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
     else: # currentBestSolution < bestSolution
-        currentBestSolution = bestSolution
+        currentBestSolutionValue = bestSolutionValue
         stableSolutionCounter = 0
     #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
     if (stableSolutionCounter >= STABLE_ITERS_STOP):
-        return stableSolutionCounter, currentBestSolution, 1
+        return stableSolutionCounter, currentBestSolutionValue, 1
     else:
-        return stableSolutionCounter, currentBestSolution, 0
+        return stableSolutionCounter, currentBestSolutionValue, 0
 
 
 
@@ -208,13 +211,13 @@ solution =[ 0 for i in range(numItems+1)] #initialization
 population = generateInitialPopulation(numItems,seed)
 populationValues = [ 0 for i in range(POPULATION_SIZE)]
 stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
-currentBestSolution = -1
+currentBestSolutionValue = -1
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-    stableSolutionCounter, currentBestSolution, endLoop =  endLoopCondition(populationValues, stableSolutionCounter, currentBestSolution)
+    stableSolutionCounter, currentBestSolutionValue, endLoop =  endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutionValue)
     if (endLoop):
         print "\nendLoopCondition atingida: " +str(STABLE_ITERS_STOP) +" iteracoes sem mudancas na melhor solucao"
         print "(geracao " +str(i) +")"
