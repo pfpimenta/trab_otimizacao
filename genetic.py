@@ -7,12 +7,13 @@ import sys
 import random
 import numpy as np
 import math
+import timeit
 
 #metaparametros do aloritmo genetico
 POPULATION_SIZE = 100
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
-TAXA_MUTACAO = 0.5 # porcentagem de genes q sao alterados por uma mutacao
+TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
 PROB_INITIAL_SOLUTION = 0.01 # probabilidade de cada gene ser ==1 em uma solucao inicial
 #PROB_INITIAL_SOLUTION podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  10 # numero maximo de iteracoes sem mudar a melhor solucao
@@ -95,9 +96,9 @@ def getSquaredPopulationProbabilities(populationValues): #alternative version
 
     return populationProbabilities
 
-def generateNewSolution(population, populationValues, itemList, numItems, populationProbabilities):
+def generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities):
     #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities)
+    index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities, replace= True)
     #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
     newSolution = [0 for i in range(numItems)]
     for i in range(numItems):
@@ -105,6 +106,11 @@ def generateNewSolution(population, populationValues, itemList, numItems, popula
             newSolution[i] = population[index1][i]
         else:
             newSolution[i] = population[index2][i]
+
+    return newSolution
+
+def generateNewSolutionGroup(population, populationValues, itemList, numItems):
+    newSolution = [0 for i in range(numItems)]
 
     return newSolution
 
@@ -139,8 +145,8 @@ def mutation(solution, numItems):
         solution[randomIndex] = (1 - solution[randomIndex])
     return solution
 
-def generateNewPopulation(population, populationValues, itemList, numItems):
-    #TODO
+def generateNewPopulationRoulette(population, populationValues, itemList, numItems):
+    #roulette version
     #sort population by solution values
     #newPopulation = sorted(population, key= lambda solution: getSolutionValue(solution, itemList))
     newPopulation = []
@@ -149,18 +155,55 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
     newPopulation.append(secondBestSolution)
     populationProbabilities = getPopulationProbabilities(populationValues)
     for i in range(POPULATION_SIZE-2): # ja botamos os 2 melhores
-        newSolution = list(generateNewSolution(population, populationValues, itemList, numItems, populationProbabilities))
+        newSolution = list(generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities))
         if(choseWithProb(PROB_MUTACAO)):
             newSolution = mutation(newSolution, numItems)
         newPopulation.append(list(newSolution))
     return newPopulation
 
+
+def getGroupSizes():
+    # devolve o tamanho dos grupos de uma populacao
+    populationLeft = POPULATION_SIZE
+    groupSizes = [0 for i in range(3)]
+    groupSizes[2] = int(POPULATION_SIZE/10) #10%
+    populationLeft -= groupSizes[2]
+    groupSizes[0] = int(2*populationLeft/9) #20%
+    groupSizes[1] = populationLeft - groupSizes[0]
+    if sum(groupSizes) != POPULATION_SIZE:
+        print ("ERRO: getGroupSizes()")
+    return groupSizes
+
+def generateNewPopulationGroups(population, populationValues, itemList, numItems):
+    #groups version
+    #sort population by solution values
+    populationAndValues = sorted(zip(population, populationValues), key= lambda pair: pair[1], reverse=True)
+    sortedPopulation = [ x[0] for x in populationAndValues]
+    sortedPopulationValues = [ x[1] for x in populationAndValues]
+
+    groupSizes = getGroupSizes()
+
+    newPopulation = []
+
+    for i in range(groupSizes[0]):
+        newPopulation.append(list(sortedPopulation[i]))
+    for i in range(groupSizes[1]):
+        newSolution = list(generateNewSolutionGroup(sortedPopulation, sortedPopulationValues, itemList, numItems))
+        if(choseWithProb(PROB_MUTACAO)):
+            newSolution = mutation(newSolution, numItems)
+        newPopulation.append(list(newSolution))
+    for i in range(groupSizes[2]):
+        #generates a random solution
+        newSolution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
+        newPopulation.append(list(newSolution))
+    return newPopulation
+
 def isSolutionValid(solution, itemList, numItems):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    for t in range(min_s, max_s + 1 ): #CHECK +1: segundo de termino
+    for t in range(min_s, max_s + 1 ): # segundo de termino
         totalWeight = 0
         for i in range(numItems):
-            if (solution[i]) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'] + 1)): #CHECK +1
+            if (solution[i]==1) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'] + 1)):
                 totalWeight += itemList[i]['weight']
         if totalWeight > capacity:
             return False
@@ -193,12 +236,12 @@ def printPopulationValues( populationValues):
     print "...printing population values...\n"
     print str(populationValues)
 
-def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutionValue):
+def endLoopCondition(population, populationValues, stableSolutionCounter, currentBestSolutionValue):
     # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
-        print("bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes")
+        print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
@@ -216,11 +259,12 @@ def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutio
 ############
 ### main ###
 ############
-print
 if (len(sys.argv) < 3 or len(sys.argv) > 3):
     print "\nERRO: numero invalido de argumentos\n"
     print "'python genetic.py inputFile seed'\n\n"
     sys.exit(1)
+
+
 
 seed = sys.argv[2]
 seedValue =  abs(hash(seed))%((2**32) - 1)
@@ -252,7 +296,7 @@ for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 
-    stableSolutionCounter, currentBestSolutionValue, endLoop =  endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutionValue)
+    stableSolutionCounter, currentBestSolutionValue, endLoop =  endLoopCondition(population, populationValues, stableSolutionCounter, currentBestSolutionValue)
     if (endLoop):
         print "\nendLoopCondition atingida: " +str(STABLE_ITERS_STOP) +" iteracoes sem mudancas na melhor solucao"
         print "(geracao " +str(i) +")"
@@ -264,7 +308,8 @@ for i in range(NUM_GERACOES):
         printPopulationValues( populationValues)
 
     #gera nova populacao de solucoes
-    population = generateNewPopulation(population, populationValues, itemList, numItems)
+    population = generateNewPopulationGroups(population, populationValues, itemList, numItems)
+    #population = generateNewPopulationRoulette(population, populationValues, itemList, numItems)
 
 
 populationValues = evaluatePopulation(population, itemList, capacity, numItems)
