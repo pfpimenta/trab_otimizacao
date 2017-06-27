@@ -138,16 +138,16 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
         newPopulation.append(list(newSolution))
     return newPopulation
 
-def getSolutionTotalWeight(solution, itemList, numItems):
-    #returns 1 if the solution doesn't exceed the cap for any second, 0 otherwise
+def isSolutionValid(solution, itemList, numItems):
+    #returns True if the solution doesn't exceed the cap for any second, False otherwise
     for t in range(min_s, max_s):
         totalWeight = 0
         for i in range(numItems):
             if (solution[i]) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'])):
                 totalWeight += itemList[i]['weight']
         if totalWeight > capacity:
-            return 0
-    return 1
+            return False
+    return True
 
 def getSolutionValue(solution, itemList, numItems):
     #get total backpack value for a solution
@@ -161,8 +161,7 @@ def getSolutionValue(solution, itemList, numItems):
 def evaluatePopulation(population, itemList, capacity, numItems):
     populationValues = [0 for i in range(POPULATION_SIZE)]
     for i in range(POPULATION_SIZE):
-        totalWeight = getSolutionTotalWeight(population[i], itemList, numItems)
-        if (totalWeight == 0): #solucao invalida, acima da capacidade
+        if (not isSolutionValid(population[i], itemList, numItems)): #solucao invalida, acima da capacidade
             populationValues[i] = -1
         else:
             populationValues[i] = int(getSolutionValue(population[i], itemList, numItems))
@@ -205,8 +204,9 @@ if (len(sys.argv) < 3 or len(sys.argv) > 3):
     sys.exit(1)
 
 seed = sys.argv[2]
-random.seed(a=hash(seed))
-np.random.seed(hash(seed))
+seedValue = min( abs(hash(seed)), (2**32) - 1)
+random.seed(a=seedValue)
+np.random.seed(seedValue)
 
 inp = open(sys.argv[1], 'rU').read().splitlines()
 
