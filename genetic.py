@@ -204,7 +204,8 @@ if (len(sys.argv) < 3 or len(sys.argv) > 3):
     sys.exit(1)
 
 seed = sys.argv[2]
-seedValue = min( abs(hash(seed)), (2**32) - 1)
+seedValue =  abs(hash(seed))%((2**32) - 1)
+print ("seedValue " + str(seedValue))
 random.seed(a=seedValue)
 np.random.seed(seedValue)
 
