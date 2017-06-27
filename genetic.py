@@ -206,7 +206,7 @@ def generateNewPopulationRoulette(population, populationValues, itemList, numIte
             newSolution = mutation(newSolution, numItems)
         # nao aceita repetidos:
         while (newSolution in newPopulation):
-            print ("debug newPopulation: " + str(newPopulation))
+            #print ("debug newPopulation: " + str(newPopulation))
             newSolution = list(generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities))
             if(choseWithProb(PROB_MUTACAO)):
                 newSolution = mutation(newSolution, numItems)
@@ -380,7 +380,8 @@ currentBestSolutionValue = -1
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
-    populationValues = evaluatePopulation(population, itemList, capacity, numItems)
+    #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
+    populationValues = evaluatePopulationRemoveInvalid(population, itemList, capacity, numItems)
 
     stableSolutionCounter, currentBestSolutionValue, endLoop =  endLoopCondition(population, populationValues, stableSolutionCounter, currentBestSolutionValue)
     if (endLoop):
@@ -398,7 +399,8 @@ for i in range(NUM_GERACOES):
     population = generateNewPopulationRoulette(population, populationValues, itemList, numItems)
 
 
-populationValues = evaluatePopulation(population, itemList, capacity, numItems)
+populationValues = evaluatePopulationRemoveInvalid(population, itemList, capacity, numItems)
+#populationValues = evaluatePopulation(population, itemList, capacity, numItems)
 bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
 endTime = time.time()
 
