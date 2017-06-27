@@ -200,6 +200,12 @@ def generateNewPopulationRoulette(population, populationValues, itemList, numIte
         newSolution = list(generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities))
         if(choseWithProb(PROB_MUTACAO)):
             newSolution = mutation(newSolution, numItems)
+        # nao aceita repetidos:
+        while (newSolution in newPopulation):
+            newSolution = list(generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities))
+            if(choseWithProb(PROB_MUTACAO)):
+                newSolution = mutation(newSolution, numItems)
+
         newPopulation.append(list(newSolution))
     return newPopulation
 
@@ -235,10 +241,18 @@ def generateNewPopulationGroups(population, populationValues, itemList, numItems
         newSolution = list(generateNewSolutionGroup(sortedPopulation, sortedPopulationValues, itemList, numItems))
         if(choseWithProb(PROB_MUTACAO)):
             newSolution = mutation(newSolution, numItems)
+        # nao aceita repetidos:
+        while (newSolution in newPopulation):
+            newSolution = list(generateNewSolutionGroup(sortedPopulation, sortedPopulationValues, itemList, numItems))
+            if(choseWithProb(PROB_MUTACAO)):
+                newSolution = mutation(newSolution, numItems)
         newPopulation.append(list(newSolution))
     for i in range(groupSizes[2]):
         #generates a random solution
         newSolution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
+        # nao aceita repetidos:
+        while (newSolution in newPopulation):
+            newSolution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
         newPopulation.append(list(newSolution))
     return newPopulation
 
