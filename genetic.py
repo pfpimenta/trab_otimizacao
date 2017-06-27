@@ -33,6 +33,16 @@ def getItemList( inp ):
 
     return itemList
 
+def getRange ():
+    min_s = 9999999999999999
+    max_s = -100000
+    for item in itemList:
+        if item['startTime'] < min_s:
+            min_s = item['startTime']
+        if item['endTime'] > max_s:
+            max_s = item['endTime']
+    return min_s, max_s
+
 def choseWithProb( oneProb ):
     zeroProb = 1 - oneProb
     result = np.random.choice([0,1], 1, p= [zeroProb, oneProb ])[0]
@@ -129,12 +139,15 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
     return newPopulation
 
 def getSolutionTotalWeight(solution, itemList, numItems):
-    #get total backpack weight for a solution
-    totalWeight = 0
-    for i in range(numItems):
-        if solution[i]:
-            totalWeight += itemList[i]['weight']
-    return totalWeight
+    #returns 1 if the solution doesn't exceed the cap for any second, 0 otherwise
+    for t in range(min_s, max_s):
+        totalWeight = 0
+        for i in range(numItems):
+            if (solution[i]) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'])):
+                totalWeight += itemList[i]['weight']
+        if totalWeight > capacity:
+            return 0
+    return 1
 
 def getSolutionValue(solution, itemList, numItems):
     #get total backpack value for a solution
@@ -149,7 +162,7 @@ def evaluatePopulation(population, itemList, capacity, numItems):
     populationValues = [0 for i in range(POPULATION_SIZE)]
     for i in range(POPULATION_SIZE):
         totalWeight = getSolutionTotalWeight(population[i], itemList, numItems)
-        if (totalWeight > capacity): #solucao invalida, acima da capacidade
+        if (totalWeight == 0): #solucao invalida, acima da capacidade
             populationValues[i] = -1
         else:
             populationValues[i] = int(getSolutionValue(population[i], itemList, numItems))
@@ -205,6 +218,8 @@ inp.remove(inp[0])
 
 itemList = getItemList(inp)
 #print itemList #debug
+
+min_s, max_s = getRange()
 
 solution =[ 0 for i in range(numItems+1)] #initialization
 
