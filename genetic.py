@@ -17,6 +17,15 @@ TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
 PROB_INITIAL_SOLUTION = 0.01 # probabilidade de cada gene ser ==1 em uma solucao inicial
 #PROB_INITIAL_SOLUTION podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  10 # numero maximo de iteracoes sem mudar a melhor solucao
+# group sizes in %
+GROUP_1_SIZE = 20.0
+GROUP_2_SIZE = 70.0
+GROUP_3_SIZE = 10.0
+# group chances in group roulette in probabilities
+GROUP_1_PROB = 0.5
+GROUP_2_PROB = 0.35
+GROUP_3_PROB = 0.15
+
 
 
 def getItemList( inp ):
@@ -96,22 +105,54 @@ def getSquaredPopulationProbabilities(populationValues): #alternative version
 
     return populationProbabilities
 
-def generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities):
-    #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities, replace= True)
-    #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
+def crossover(parent1, parent2, numItems):
     newSolution = [0 for i in range(numItems)]
     for i in range(numItems):
         if choseWithProb(0.5):
-            newSolution[i] = population[index1][i]
+            newSolution[i] = parent1[i]
         else:
-            newSolution[i] = population[index2][i]
-
+            newSolution[i] = parent1[i]
     return newSolution
+
+def generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities):
+    index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities, replace= True)
+    #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
+    newSolution = crossover(population[index1], population[index2], numItems)
+    return newSolution
+
+def fastRoulette():
+    #escolhe um indice aleatorio do array (mais chance pros primeiros itens)
+    if (POPULATION_SIZE < 50):
+        prob = 0.2 # 20%
+    else:
+        prob = 10/POPULATION_SIZE
+
+    for i in range(POPULATION_SIZE):
+        if (choseWithProb(prob)):
+            return i
+    #se nao escolher nenhum no for, escolhe entre os 20% primeiros
+    return random.randint(0,int(POPULATION_SIZE/(2.0*GROUP_1_SIZE)))
+
+def groupRoulette():
+    group = np.random.choice([1,2,3], 1, p= [GROUP_1_PROB, GROUP_2_PROB, GROUP_3_PROB])[0]
+    groupSizes = getGroupSizes()
+    if (group == 1):
+        index = random.randint(0,groupSizes[0]-1)
+    elif (group == 2):
+        index = random.randint(groupSizes[0], groupSizes[0]+groupSizes[1]-1)
+    elif (group == 3):
+        index = random.randint(groupSizes[0] + groupSizes[1], groupSizes[0] + groupSizes[1] + groupSizes[2]-1)
+    else:
+        print ("ERRO que nao deveria acontecer: groupRoulette")
+        sys.exit(1)
+    return index
 
 def generateNewSolutionGroup(population, populationValues, itemList, numItems):
     newSolution = [0 for i in range(numItems)]
-
+    index1 = groupRoulette()
+    index2 = groupRoulette()
+    #print ("debug indexes: " + str(index1) +", "+str(index2)) #debug
+    newSolution = crossover(population[index1], population[index2], numItems)
     return newSolution
 
 def getBestSolution(population, populationValues):
@@ -154,6 +195,7 @@ def generateNewPopulationRoulette(population, populationValues, itemList, numIte
     newPopulation.append(bestSolution)
     newPopulation.append(secondBestSolution)
     populationProbabilities = getPopulationProbabilities(populationValues)
+    #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
     for i in range(POPULATION_SIZE-2): # ja botamos os 2 melhores
         newSolution = list(generateNewSolutionRoulette(population, populationValues, itemList, numItems, populationProbabilities))
         if(choseWithProb(PROB_MUTACAO)):
@@ -166,12 +208,14 @@ def getGroupSizes():
     # devolve o tamanho dos grupos de uma populacao
     populationLeft = POPULATION_SIZE
     groupSizes = [0 for i in range(3)]
-    groupSizes[2] = int(POPULATION_SIZE/10) #10%
+    groupSizes[2] = int(POPULATION_SIZE/GROUP_3_SIZE) #10%
     populationLeft -= groupSizes[2]
-    groupSizes[0] = int(2*populationLeft/9) #20%
+    proportionLeft = GROUP_1_SIZE/(100 - GROUP_3_SIZE) #20%
+    groupSizes[0] = int(proportionLeft*populationLeft)
     groupSizes[1] = populationLeft - groupSizes[0]
     if sum(groupSizes) != POPULATION_SIZE:
-        print ("ERRO: getGroupSizes()")
+        print ("ERRO que nao deveria acontecer: getGroupSizes()")
+    #print ("debug group sizes: " +str(groupSizes)) #debug
     return groupSizes
 
 def generateNewPopulationGroups(population, populationValues, itemList, numItems):
@@ -310,8 +354,8 @@ for i in range(NUM_GERACOES):
         printPopulationValues( populationValues)
 
     #gera nova populacao de solucoes
-    population = generateNewPopulationGroups(population, populationValues, itemList, numItems)
-    #population = generateNewPopulationRoulette(population, populationValues, itemList, numItems)
+    #population = generateNewPopulationGroups(population, populationValues, itemList, numItems)
+    population = generateNewPopulationRoulette(population, populationValues, itemList, numItems)
 
 
 populationValues = evaluatePopulation(population, itemList, capacity, numItems)
