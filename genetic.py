@@ -276,6 +276,25 @@ def getSolutionValue(solution, itemList, numItems):
     return solutionValue
 
 
+def adjustSolution(solution):
+    i = random.choice(range(numItems))
+    while(solution[i] != 1):
+        if (i < numItems-1):
+            i += 1
+        else:
+            i = 0
+    solution[i] = 0
+    return solution
+
+def evaluatePopulationRemoveInvalid(population, itemList, capacity, numItems):
+    populationValues = [0 for i in range(POPULATION_SIZE)]
+    for i in range(POPULATION_SIZE):
+        while (not isSolutionValid(population[i], itemList, numItems)): #solucao invalida, acima da capacidade
+            population[i] = adjustSolution(population[i])
+        populationValues[i] = int(getSolutionValue(population[i], itemList, numItems))
+    return populationValues
+
+
 def evaluatePopulation(population, itemList, capacity, numItems):
     populationValues = [0 for i in range(POPULATION_SIZE)]
     for i in range(POPULATION_SIZE):
