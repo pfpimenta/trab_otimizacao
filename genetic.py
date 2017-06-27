@@ -140,10 +140,10 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
 
 def isSolutionValid(solution, itemList, numItems):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    for t in range(min_s, max_s):
+    for t in range(min_s, max_s + 1 ): #CHECK +1: segundo de termino
         totalWeight = 0
         for i in range(numItems):
-            if (solution[i]) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'])):
+            if (solution[i]) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'] + 1)): #CHECK +1
                 totalWeight += itemList[i]['weight']
         if totalWeight > capacity:
             return False
