@@ -7,7 +7,7 @@ import sys
 import random
 import numpy as np
 import math
-import timeit
+import time
 
 #metaparametros do aloritmo genetico
 POPULATION_SIZE = 100
@@ -287,6 +287,8 @@ min_s, max_s = getRange()
 
 solution =[ 0 for i in range(numItems+1)] #initialization
 
+startTime = time.time() # medir o tempo de execucao a partir daqui?
+
 population = generateInitialPopulation(numItems,seed)
 populationValues = [ 0 for i in range(POPULATION_SIZE)]
 stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
@@ -313,10 +315,14 @@ for i in range(NUM_GERACOES):
 
 
 populationValues = evaluatePopulation(population, itemList, capacity, numItems)
+bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
+endTime = time.time()
+
+totalTime = endTime - startTime
 
 print "\n\n --- populacao final ---\n"
 #printPopulationAndValues(population, populationValues)
 printPopulationValues( populationValues)
 print "\n --- melhor solucao encontrada ---"
-bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
 print str(bestSolution) + "\nvalor: " + str(bestSolutionValue)
+print ("tempo de execucao: " +str(totalTime) +" segundos")
