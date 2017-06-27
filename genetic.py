@@ -72,10 +72,10 @@ def getPopulationProbabilities(populationValues): #original version
 
     sumExps = 0
     for i in range(POPULATION_SIZE):
-        sumExps += np.exp(populationValues[i])
+        sumExps += np.exp(populationValues[i]/100) # to avoid overflow
 
     for i in range(POPULATION_SIZE):
-        populationProbabilities[i] = np.exp(populationValues[i])/ sumExps
+        populationProbabilities[i] = np.exp(populationValues[i]/100)/ sumExps
 
     return populationProbabilities
 
@@ -86,17 +86,16 @@ def getSquaredPopulationProbabilities(populationValues): #alternative version
 
     sumExps = 0
     for i in range(POPULATION_SIZE):
-        valueSquared = (populationValues[i])*(populationValues[i])/100
+        valueSquared = (populationValues[i]/100)*(populationValues[i]/100)/100
         sumExps += np.exp(valueSquared)
 
     for i in range(POPULATION_SIZE):
-        valueSquared = (populationValues[i])*(populationValues[i])/100
+        valueSquared = (populationValues[i]/100)*(populationValues[i]/100)/100
         populationProbabilities[i] = np.exp(valueSquared)/ sumExps
 
     return populationProbabilities
 
-def generateNewSolution(population, populationValues, itemList, numItems):
-    populationProbabilities = getPopulationProbabilities(populationValues)
+def generateNewSolution(population, populationValues, itemList, numItems, populationProbabilities):
     #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
     index1, index2 = np.random.choice(POPULATION_SIZE, 2, p=populationProbabilities)
     #print "index1: " + str(index1) + "  index2: " + str(index2) #debug
@@ -118,6 +117,22 @@ def getBestSolution(population, populationValues):
             bestSolution = list(population[i])
     return bestSolution, bestSolutionValue
 
+def getBestAndSecondSolution(population, populationValues):
+    bestSolution = list(population[0])
+    secondBestSolution = list(population[0])
+    bestSolutionValue = populationValues[0]
+    secondBestSolutionValue = populationValues[0]
+    for i in range(POPULATION_SIZE):
+        if(populationValues[i] > bestSolutionValue):
+            secondBestSolutionValue = bestSolutionValue
+            secondBestSolution = list(bestSolution)
+            bestSolutionValue = populationValues[i]
+            bestSolution = list(population[i])
+        elif(populationValues[i] < bestSolutionValue and populationValues[i] > secondBestSolutionValue):
+            secondBestSolutionValue = populationValues[i]
+            secondBestSolution = list(population[i])
+    return bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue
+
 def mutation(solution, numItems):
     for i in range(int(numItems*TAXA_MUTACAO)):
         randomIndex = random.randint(0,numItems-1)
@@ -129,10 +144,12 @@ def generateNewPopulation(population, populationValues, itemList, numItems):
     #sort population by solution values
     #newPopulation = sorted(population, key= lambda solution: getSolutionValue(solution, itemList))
     newPopulation = []
-    bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
+    bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue = getBestAndSecondSolution(population, populationValues)
     newPopulation.append(bestSolution)
-    for i in range(POPULATION_SIZE-1):
-        newSolution = list(generateNewSolution(population, populationValues, itemList, numItems))
+    newPopulation.append(secondBestSolution)
+    populationProbabilities = getPopulationProbabilities(populationValues)
+    for i in range(POPULATION_SIZE-2): # ja botamos os 2 melhores
+        newSolution = list(generateNewSolution(population, populationValues, itemList, numItems, populationProbabilities))
         if(choseWithProb(PROB_MUTACAO)):
             newSolution = mutation(newSolution, numItems)
         newPopulation.append(list(newSolution))
@@ -181,6 +198,7 @@ def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutio
     bestSolution, bestSolutionValue = getBestSolution(population, populationValues)
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
+        print("bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
@@ -198,6 +216,7 @@ def endLoopCondition(populationValues, stableSolutionCounter, currentBestSolutio
 ############
 ### main ###
 ############
+print
 if (len(sys.argv) < 3 or len(sys.argv) > 3):
     print "\nERRO: numero invalido de argumentos\n"
     print "'python genetic.py inputFile seed'\n\n"
@@ -205,7 +224,7 @@ if (len(sys.argv) < 3 or len(sys.argv) > 3):
 
 seed = sys.argv[2]
 seedValue =  abs(hash(seed))%((2**32) - 1)
-print ("seedValue " + str(seedValue))
+#print ("seedValue " + str(seedValue))
 random.seed(a=seedValue)
 np.random.seed(seedValue)
 
@@ -239,7 +258,7 @@ for i in range(NUM_GERACOES):
         print "(geracao " +str(i) +")"
         break;
 
-    if i==0 or i == int(NUM_GERACOES*2/3): #debug
+    if True or i==0 or i == int(NUM_GERACOES*2/3): #debug
         print "\n\n-> geracao " + str(i)
         #printPopulationAndValues(population, populationValues)
         printPopulationValues( populationValues)
