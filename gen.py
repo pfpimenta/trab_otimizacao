@@ -51,9 +51,11 @@ def generateInitialPopulation():
     for i in range(populationSize):
         #generates a random solution
         solution = [random.choice([0,1]) for j in range(numItems)]
-        #prob = (2/math.sqrt(numItems)) / (1 + 2/math.sqrt(numItems))
-        #solution = [choseWithProb(prob) for j in range(numItems)] # versao alternativa
-        new_population.append(solution)
+        # nao aceita repetidos:
+        while (solution in population):
+            solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
+            solution = mutation(solution, numItems)
+        new_population.append(list(solution))
 
     return new_population
 
