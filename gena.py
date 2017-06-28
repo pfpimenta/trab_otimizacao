@@ -190,7 +190,7 @@ def endLoopCondition():
     bestSolution, bestSolutionValue, secondSolution, secondSolutionValue = getBestAndSecondSolution()
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
-        print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
+        # print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
@@ -224,6 +224,14 @@ def getBestAndSecondSolution():
             secondBestSolution = list(population[i])
     return bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue
 
+def finalPrint():
+    # pra printar no arquivo os resultados
+    print ("gena.py")
+    print ("instancia: " +str(sys.argv[1]))
+    print ("population size: " +str(populationSize))
+    print ("melhor solucao: " +str(currentBestSolution))
+    print ( "valor da melhor solucao: "+str(currentBestSolutionValue))
+    print ("tempo de execucao: " +str(totalTime))
 
 
 
@@ -267,14 +275,14 @@ currentBestSolution = []
 currentSecondSolutionValue = -1
 currentSecondSolution = []
 endLoop = 0
-print "1"
+#print "1"
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    print "2"
-    print populationValues
+    #print "2"
+    #print populationValues
 
     endLoopCondition()
     if endLoop:
@@ -282,11 +290,10 @@ for i in range(NUM_GERACOES):
 
     generateNewPopulation()
 
-    print "3"
+    #print "3"
 
 endTime = time.time()
 
 totalTime = endTime - startTime
 
-print currentBestSolutionValue
-print ("tempo de execucao: " +str(totalTime))
+finalPrint()
