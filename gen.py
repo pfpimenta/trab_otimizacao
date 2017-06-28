@@ -9,7 +9,7 @@ import time
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
-#PROB_INITIAL_SOLUTION podia ser +-  ==10/numItems
+PROB_INITIAL_SOLUTION = 0.01 # probabilidade de cada gene ser ==1 em uma solucao inicial
 STABLE_ITERS_STOP =  5 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
@@ -52,9 +52,9 @@ def generateInitialPopulation():
         #generates a random solution
         solution = [random.choice([0,1]) for j in range(numItems)]
         # nao aceita repetidos:
-        while (solution in population):
+        while (solution in new_population):
             solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
-            solution = mutation(solution, numItems)
+            solution = mutation(solution)
         new_population.append(list(solution))
 
     return new_population
@@ -159,6 +159,9 @@ def generateNewPopulation():
         newSolution = generateNewSolution()
         if(choseWithProb(PROB_MUTACAO)): # TODO
             newSolution = mutation(newSolution)
+        # nao aceita repetidos: ###POSSIVEL GARGALO #TODO
+        while (newSolution in newPopulation):
+            newSolution = generateNewSolution()
         newPopulation.append(list(newSolution))
     global population
     population = newPopulation
@@ -190,9 +193,9 @@ def endLoopCondition():
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
-    secondBestSolution = list(population[0])
+    secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
-    secondBestSolutionValue = populationValues[0]
+    secondBestSolutionValue = 0
     for i in range(populationSize):
         if(populationValues[i] > bestSolutionValue):
             secondBestSolutionValue = bestSolutionValue
@@ -212,7 +215,7 @@ def getBestAndSecondSolution():
 
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
-    print "'python genetic.py inputFile seed populationSize'\n\n"
+    print "'python gen.py inputFile seed populationSize'\n\n"
     sys.exit(1)
 
 
@@ -239,6 +242,7 @@ min_s, max_s = getRange()
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
 
+global population
 population = generateInitialPopulation()
 populationValues = [0 for i in  range(populationSize)]
 stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
@@ -247,13 +251,13 @@ currentBestSolution = []
 currentSecondSolutionValue = -1
 currentSecondSolution = []
 endLoop = 0
-print "1"
+#print "debug 1" #debug
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    print "2"
+    #print "debug 2" #debug
     print populationValues
 
     endLoopCondition()
@@ -262,6 +266,12 @@ for i in range(NUM_GERACOES):
 
     generateNewPopulation()
 
-    print "3"
+    #print "debug 3" #debug
+
+
+endTime = time.time()
+
+totalTime = endTime - startTime
 
 print currentBestSolutionValue
+print ("tempo de execucao: " +str(totalTime))
