@@ -61,17 +61,6 @@ def generateInitialPopulation():
 
     return new_population
 
-"""def isSolutionValid(sol):
-    #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    for t in range(min_s, max_s + 1 ): # segundo de termino
-        totalWeight = 0
-        for i in range(numItems):
-            if (sol[i]==1) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'] + 1)):
-                totalWeight += itemList[i]['weight']
-        if totalWeight > capacity:
-            return False
-    return True"""
-
 def isSolutionValid(sol):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
     secs = [0 for i in range(min_s, max_s + 1)]
@@ -87,26 +76,27 @@ def isSolutionValid(sol):
 
 def deWeight(weights, sol, second):
     for j in range(numItems):
-        if sol[j] == 1 and (second+min_s) in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
+        if sol[j] == 1 and second in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
             sol[j] = 0
-            for time in range((itemList[i]['startTime']-min_s), (itemList[i]['endTime']-min_s) ):
+            for time in range(itemList[i]['startTime'], itemList[i]['endTime']):
                 weights[time] -= itemList[j]['weight']
             return weights, sol
 
     print ("deWeight falhou")
-    print "weights: " + str(weights) + " sol:"+str(sol)
+    #print "weights: " + str(weights) + " sol:"+str(sol)
     exit(1)
 
 def adjustSolution2(sol):
-    weights = [0 for i in range(min_s, max_s + 1)]
+    # weights = [0 for i in range(min_s, max_s + 1)]
+    weights = {i:0 for i in range(min_s, max_s + 1)}
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range((itemList[i]['startTime']-min_s), (itemList[i]['endTime']-min_s) ):
+            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):
                 weights[j] += itemList[i]['weight']
 
-    for second, weight in enumerate(weights):
-        while weights[i] > capacity:
-            print "debug weights[i]: " + str(weights[i]) + " capacity:"+str(capacity)+" second: "+str(second)
+    for second, weight in weights.iteritems():
+        while weights[second] > capacity:
+            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
             weights, sol = deWeight(weights, sol, second)
     return sol
 
