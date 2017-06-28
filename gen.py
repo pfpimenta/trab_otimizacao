@@ -57,7 +57,7 @@ def generateInitialPopulation():
 
     return new_population
 
-def isSolutionValid(sol):
+"""def isSolutionValid(sol):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
     for t in range(min_s, max_s + 1 ): # segundo de termino
         totalWeight = 0
@@ -65,6 +65,19 @@ def isSolutionValid(sol):
             if (sol[i]==1) and (t in range(itemList[i]['startTime'], itemList[i]['endTime'] + 1)):
                 totalWeight += itemList[i]['weight']
         if totalWeight > capacity:
+            return False
+    return True"""
+
+def isSolutionValid(sol):
+    #returns True if the solution doesn't exceed the cap for any second, False otherwise
+    secs = [0 for i in range(min_s, max_s + 1)]
+    for i in range(numItems):
+        if sol[i] == 1:
+            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):  #  TODO why no  +1 here??? shit goes crazy
+                secs[j] += itemList[i]['weight']
+
+    for i in secs :
+        if i > capacity:
             return False
     return True
 
@@ -88,13 +101,13 @@ def getSolutionValue(sol):
 
 def evaluatePopulation():
     for i in range(populationSize):
-        """while not isSolutionValid(population[i]): #solucao invalida, acima da capacidade
+        while not isSolutionValid(population[i]): #solucao invalida, acima da capacidade
             population[i] = adjustSolution(population[i])
-        populationValues[i] = int(getSolutionValue(population[i]))"""
-        if not isSolutionValid(population[i]):
+        populationValues[i] = int(getSolutionValue(population[i]))
+        """"if not isSolutionValid(population[i]):
             populationValues[i] = 1
         else:
-            populationValues[i] = int(getSolutionValue(population[i]))
+            populationValues[i] = int(getSolutionValue(population[i]))"""
 
 def crossover(parent1, parent2):
     newSolution = [0 for i in range(numItems)]
