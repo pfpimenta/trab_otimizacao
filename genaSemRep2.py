@@ -1,6 +1,5 @@
 import sys
 import random
-import numpy as np
 import math
 import time
 
@@ -228,11 +227,21 @@ def getBestAndSecondSolution():
             secondBestSolution = list(population[i])
     return bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue
 
+def finalPrint():
+    # pra printar no arquivo os resultados
+    print ("genaSemRep2.py")
+    print ("instancia: " +str(sys.argv[1]))
+    print ("population size: " +str(populationSize))
+    print ("melhor solucao: " +str(currentBestSolution))
+    print ( "valor da melhor solucao: "+str(currentBestSolutionValue))
+    print ("tempo de execucao: " +str(totalTime))
 
 
 
 
-
+############
+### main ###
+############
 
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
@@ -244,7 +253,6 @@ seed = sys.argv[2]
 seedValue =  abs(hash(seed))%((2**32) - 1)
 #print ("seedValue " + str(seedValue))
 random.seed(a=seedValue)
-np.random.seed(seedValue)
 
 populationSize = int(sys.argv[3])
 
@@ -292,5 +300,4 @@ endTime = time.time()
 
 totalTime = endTime - startTime
 
-print currentBestSolutionValue
-print ("tempo de execucao: " +str(totalTime))
+finalPrint()

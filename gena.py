@@ -1,6 +1,5 @@
 import sys
 import random
-import numpy as np
 import math
 import time
 
@@ -236,7 +235,9 @@ def finalPrint():
 
 
 
-
+############
+### main ###
+############
 
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
@@ -248,7 +249,6 @@ seed = sys.argv[2]
 seedValue =  abs(hash(seed))%((2**32) - 1)
 #print ("seedValue " + str(seedValue))
 random.seed(a=seedValue)
-np.random.seed(seedValue)
 
 populationSize = int(sys.argv[3])
 
