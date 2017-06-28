@@ -78,7 +78,7 @@ def deWeight(weights, sol, second):
     for j in range(numItems):
         if sol[j] == 1 and second in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
             sol[j] = 0
-            for time in range(itemList[i]['startTime'], itemList[i]['endTime']):
+            for time in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
                 weights[time] -= itemList[j]['weight']
             return weights, sol
 
@@ -91,10 +91,11 @@ def adjustSolution2(sol):
     weights = {i:0 for i in range(min_s, max_s + 1)}
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):
+            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] +1 ):
                 weights[j] += itemList[i]['weight']
 
-    for second, weight in weights.iteritems():
+
+    for second in range(min_s, max_s + 1):
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
             weights, sol = deWeight(weights, sol, second)
