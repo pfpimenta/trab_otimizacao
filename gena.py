@@ -85,24 +85,29 @@ def isSolutionValid(sol):
             return False
     return True
 
-def deWeight(weight, sol, i):
+def deWeight(weights, sol, second):
     for j in range(numItems):
-        if sol[j] == 1 and i in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
+        if sol[j] == 1 and (second+min_s) in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
             sol[j] = 0
-            weight -= itemList[j]['weight']
-            return weight, sol
+            for time in range((itemList[i]['startTime']-min_s), (itemList[i]['endTime']-min_s) ):
+                weights[time] -= itemList[j]['weight']
+            return weights, sol
+
+    print ("deWeight falhou")
+    print "weights: " + str(weights) + " sol:"+str(sol)
+    exit(1)
 
 def adjustSolution2(sol):
     weights = [0 for i in range(min_s, max_s + 1)]
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):
+            for j in range((itemList[i]['startTime']-min_s), (itemList[i]['endTime']-min_s) ):
                 weights[j] += itemList[i]['weight']
 
-    for i, weight in enumerate(weights):
+    for second, weight in enumerate(weights):
         while weights[i] > capacity:
-            weights[i], sol = deWeight(weight, sol, i)
-            print "pihfipdfpidsjpisd"
+            print "debug weights[i]: " + str(weights[i]) + " capacity:"+str(capacity)+" second: "+str(second)
+            weights, sol = deWeight(weights, sol, second)
     return sol
 
 def adjustSolution(sol):
