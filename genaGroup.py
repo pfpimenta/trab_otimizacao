@@ -8,7 +8,7 @@ import time
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
-PROB_INITIAL_SOLUTION = 0.99  #  podia ser +-  ==10/numItems
+PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
 # group sizes in %
 GROUP_1_SIZE = 20.0
