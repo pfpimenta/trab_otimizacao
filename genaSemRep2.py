@@ -193,7 +193,7 @@ def endLoopCondition():
     bestSolution, bestSolutionValue, secondSolution, secondSolutionValue = getBestAndSecondSolution()
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
-        print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
+        #print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
@@ -279,22 +279,18 @@ currentBestSolution = []
 currentSecondSolutionValue = -1
 currentSecondSolution = []
 endLoop = 0
-print "1"
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    print "2"
-    print populationValues
+    #print populationValues
 
     endLoopCondition()
     if endLoop:
         break;
 
     generateNewPopulation()
-
-    print "3"
 
 endTime = time.time()
 
