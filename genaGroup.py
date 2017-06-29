@@ -163,29 +163,6 @@ def groupRoulette():
     return index
 
 
-'''def generateNewSolution():
-    sum_v = 0
-    for i in range(populationSize):
-        sum_v += populationValues[i]
-    point1 = random.randint(0,sum_v - 1)
-    point2 = random.randint(0,sum_v - 1)
-    parent1 = 0
-    parent2 = 0
-
-    for i in range(populationSize):
-        if point1 <=0:
-            parent1 = i
-            break;
-        point1 -= populationValues[i]
-    for i in range(populationSize):
-        if point2 <=0:
-            parent2 = i
-            break;
-        point2 -= populationValues[i]
-
-    newSolutiion = crossover(population[parent1],population[parent2])
-    return newSolutiion'''
-
 def generateNewSolutionGroup(population, populationValues, itemList, numItems):
     newSolution = [0 for i in range(numItems)]
     index1 = groupRoulette()
@@ -199,20 +176,6 @@ def mutation(solution):
         randomIndex = random.randint(0,numItems-1)
         solution[randomIndex] = (1 - solution[randomIndex])
     return solution
-
-'''def generateNewPopulation():
-    newPopulation = []
-    newPopulation.append(currentBestSolution)
-    newPopulation.append(currentSecondSolution)
-    newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
-    #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    for i in range(populationSize-3): # ja botamos os 2 melhores
-        newSolution = generateNewSolution()
-        if(choseWithProb(PROB_MUTACAO)): # TODO
-            newSolution = mutation(newSolution)
-        newPopulation.append(list(newSolution))
-    global population
-    population = newPopulation'''
 
 def getGroupSizes():
     # devolve o tamanho dos grupos de uma populacao
