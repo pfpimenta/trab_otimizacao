@@ -341,6 +341,7 @@ def endLoopCondition(population, populationValues, stableSolutionCounter, curren
 ############
 ### main ###
 ############
+
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
     print "'python genetic.py inputFile seed populationSize'\n\n"

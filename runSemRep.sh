@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "running all instances - genaSemRep2"
+echo "running all instances - genaSemRep"
 python genaSemRep.py tkp_instances/U2 seedMoreira 200 > genaSemRep_U2_seedMoreira_200.txt
 python genaSemRep.py tkp_instances/U100 seedMoreira 200 > genaSemRep_U100_seedMoreira_200.txt
 python genaSemRep.py tkp_instances/I5 seedMoreira 200 > genaSemRep_I5_seedMoreira_200.txt

@@ -56,7 +56,6 @@ def getRange ():
             max_s = item['endTime']
     return min_s, max_s
 
-
 def generateInitialPopulation():
     new_population = []
     for i in range(populationSize):
