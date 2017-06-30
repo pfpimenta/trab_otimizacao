@@ -72,7 +72,7 @@ def generateInitialPopulation():
 
 def isSolutionValid(sol):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    secs = [0 for i in range(min_s, max_s + 1)]
+    secs = [0 for i in secondsList]
     for i in range(numItems):
         if sol[i] == 1:
             for j in range(itemList[i]['s'], itemList[i]['e'] ):  #  TODO why no  +1 here??? shit goes crazy
@@ -96,15 +96,15 @@ def deWeight(weights, sol, second):
     exit(1)
 
 def adjustSolution2(sol):
-    # weights = [0 for i in range(min_s, max_s + 1)]
-    weights = {i:0 for i in range(min_s, max_s + 1)}
+    # weights = [0 for i in secondsList]
+    weights = {i:0 for i in secondsList}
     for i in range(numItems):
         if sol[i] == 1:
             for j in range(itemList[i]['s'], itemList[i]['e'] +1 ):
                 weights[j] += itemList[i]['w']
 
 
-    for second in range(min_s, max_s + 1):
+    for second in secondsList:
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
             weights, sol = deWeight(weights, sol, second)
@@ -305,6 +305,7 @@ inp.remove(inp[0])
 itemList = getItemList(inp)
 
 min_s, max_s = getRange()
+secondsList = range(min_s, max_s + 1)
 
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
