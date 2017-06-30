@@ -95,6 +95,18 @@ def deWeight(weights, sol, second):
     #print "weights: " + str(weights) + " sol:"+str(sol)
     exit(1)
 
+def deWeight2(weights, sol, second):
+    for itemIndex in itemIndexesPerSecond[second]:
+        if sol[itemIndex] == 1:
+            sol[j] = 0
+            for time in range(itemList['s'][itemIndex], itemList['e'][itemIndex]+1):
+                weights[time] -= itemList['w'][itemIndex]
+            return weights, sol
+
+    print ("deWeight2 falhou")
+    #print "weights: " + str(weights) + " sol:"+str(sol)
+    exit(1)
+
 def adjustSolution3(sol):
     # optimized version
     # weights = [0 for i in secondsList]
@@ -106,7 +118,7 @@ def adjustSolution3(sol):
                 weights[second] += itemList['w'][itemIndex]
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
-            weights, sol = deWeight(weights, sol, second) #precisa otimizar a deWeight
+            weights, sol = deWeight2(weights, sol, second)
     return sol
 
 def adjustSolution2(sol):
