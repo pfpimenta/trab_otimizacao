@@ -267,7 +267,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("genaGroup.py")
+    print ("\n --- genaGroup.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))

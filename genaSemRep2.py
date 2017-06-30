@@ -230,7 +230,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("genaSemRep2.py")
+    print ("\n --- genaSemRep2.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))

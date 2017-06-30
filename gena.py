@@ -12,7 +12,18 @@ PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
-
+'''def getItemList( inp ): #alternative version
+    #receives the input instance without the first 2 lines
+    #retorns a dict with 4 lists: of all the items' values, weights, start times, and end times
+    itemList = { 'v': [], 'w': [], 's': [], 'e': []}
+    #v: values, w: weights, s: start times, e: end times
+    for line in inp:
+        lineWords = line.split(" ")
+        itemList['v'].append( int(lineWords[0]))
+        itemList['w'].append( int(lineWords[1]))
+        itemList['s'].append( int(lineWords[2]))
+        itemList['e'].append( int(lineWords[3]))
+    return itemList '''
 
 def getItemList( inp ):
     #receives the input instance without the first 2 lines
@@ -83,6 +94,20 @@ def deWeight(weights, sol, second):
     print ("deWeight falhou")
     #print "weights: " + str(weights) + " sol:"+str(sol)
     exit(1)
+
+def adjustSolution3(sol):
+    # optimized version
+    # weights = [0 for i in secondsList]
+    weights = {second:0 for second in secondsList}
+
+    for second in secondsList:
+        for itemIndex in itemIndexesPerSecond[second]:
+            if solution[itemIndex] == 1:
+                weights[second] += itemList['w'][itemIndex]
+        while weights[second] > capacity:
+            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
+            weights, sol = deWeight(weights, sol, second) #precisa otimizar a deWeight
+    return sol
 
 def adjustSolution2(sol):
     # weights = [0 for i in secondsList]
@@ -224,7 +249,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("gena.py")
+    print ("\n --- gena.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))
@@ -263,6 +288,8 @@ itemList = getItemList(inp)
 
 min_s, max_s = getRange()
 secondsList = range(min_s, max_s + 1)
+
+
 
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
