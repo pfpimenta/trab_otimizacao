@@ -98,6 +98,8 @@ def getSolutionValue(solution):
 
 def evaluatePopulation():
     #ajusta as solucoes invalidas e avalia cada solucao
+    global populationValues, population
+    solution = []
     for i in range(populationSize):
         population[i] = adjustSolution(population[i]) # ajusta solucoes invalidas, acima da capacidade
         populationValues[i] = int(getSolutionValue(population[i]))
@@ -144,6 +146,7 @@ def mutation(solution):
 
 def generateNewPopulation():
     newPopulation = []
+    print ("deburguer: " + str(debugGetSumSolution(currentBestSolution)) +" :: " +str(getSolutionValue(currentBestSolution))) #debug
     newPopulation.append(currentBestSolution)
     newPopulation.append(currentSecondSolution)
     newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
@@ -163,33 +166,43 @@ def debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValu
     print ("bestSolutionValue: " + str(bestSolutionValue))
     print ("secondSolutionValue: " + str(secondSolutionValue))
 
+def debugGetSumSolution(solution): #debug
+    sumSolution = 0
+    for value in solution:
+        sumSolution += value
+    return sumSolution
 
 def endLoopCondition():
     # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     global currentBestSolutionValue, stableSolutionCounter, endLoop, currentBestSolution, currentSecondSolution, currentSecondSolutionValue
-    bestSolution, bestSolutionValue, secondSolution, secondSolutionValue = getBestAndSecondSolution()
-    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
+    bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue = getBestAndSecondSolution()
+    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
         # print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
+
     else: # currentBestSolutionValue < bestSolutionValue
         currentBestSolutionValue = bestSolutionValue
         currentBestSolution = bestSolution
         stableSolutionCounter = 0
+        print ("predeburguer: " + str(debugGetSumSolution(currentBestSolution))) #debug
 
-    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
+    print ("deburguer 3: " + str(debugGetSumSolution(currentBestSolution))) #debug
+    print ("deburguer 4: " + str(debugGetSumSolution(bestSolution))) #debug
+
+    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
 
     if(bestSolutionValue <  currentBestSolutionValue and bestSolutionValue > currentSecondSolutionValue):
         currentSecondSolution = bestSolution
         currentSecondSolutionValue = bestSolutionValue
-    elif ( secondSolutionValue > currentSecondSolutionValue):
-        currentSecondSolution = secondSolution
-        currentSecondSolutionValue = secondSolutionValue
+    elif ( secondBestSolutionValue > currentSecondSolutionValue):
+        currentSecondSolution = secondBestSolution
+        currentSecondSolutionValue = secondBestSolutionValue
 
-    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
+    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
 
 
     #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
@@ -266,19 +279,21 @@ population = generateInitialPopulation()
 populationValues = [0 for i in  range(populationSize)]
 stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
 currentBestSolutionValue = -1
-currentBestSolution = []
+currentBestSolution = [0 for i in range(numItems)]
 currentSecondSolutionValue = -1
-currentSecondSolution = []
+currentSecondSolution = [0 for i in range(numItems)]
 endLoop = 0
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
+    print("debug7? " +str(getSolutionValue(population[0])))
     evaluatePopulation()
+    print("debug8? " +str(getSolutionValue(population[0])))
     print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
-    if endLoop: #or i == 1: #debug
+    if endLoop or i == 1: #debug
         break;
 
     generateNewPopulation()
