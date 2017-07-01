@@ -12,21 +12,28 @@ PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
 STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
-def getItemList( inp ):
+def getItemList( inp ): # alt version
     #receives the input instance without the first 2 lines
-    #retorns a list of all the items
-    item = { 'v': 0, 'w': 0, 's': 0, 'e': 0}
-    #v: value, w: weight, s: start time, e: end time
-    itemList = []
+    #retorns a dict with 4 lists: of all the items' values, weights, start times, and end times
+    itemList = { 'v': [], 'w': [], 's': [], 'e': []}
+    #v: values, w: weights, s: start times, e: end times
     for line in inp:
         lineWords = line.split(" ")
-        item['v'] = int(lineWords[0])
-        item['w'] = int(lineWords[1])
-        item['s'] = int(lineWords[2])
-        item['e'] = int(lineWords[3])
-        itemList.append(item.copy())
-
+        itemList['v'].append( int(lineWords[0]))
+        itemList['w'].append( int(lineWords[1]))
+        itemList['s'].append( int(lineWords[2]))
+        itemList['e'].append( int(lineWords[3]))
     return itemList
+
+def getItemIndexesPerSecond():
+    #
+    itemIndexesPerSecond = {second:[] for second in secondsList}
+    #for second in secondsList:
+    for itemIndex in range(numItems):
+        for second in range(itemList['s'][itemIndex],itemList['e'][itemIndex] + 1): #+1 pra incluir o ultimo segundo
+            itemIndexesPerSecond[second].append(itemIndex)
+    print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond))
+    return itemIndexesPerSecond
 
 def choseWithProb( oneProb ):
     #  zeroProb = 1 - oneProb
@@ -40,11 +47,11 @@ def choseWithProb( oneProb ):
 def getRange ():
     min_s = 9999999999999999
     max_s = -100000
-    for item in itemList:
-        if item['s'] < min_s:
-            min_s = item['s']
-        if item['e'] > max_s:
-            max_s = item['e']
+    for i in range(numItems):
+        if itemList['s'][i] < min_s:
+            min_s = itemList['s'][i]
+        if itemList['e'][i] > max_s:
+            max_s = itemList['e'][i]
     return min_s, max_s
 
 
@@ -69,32 +76,19 @@ def isSolutionValid(sol):
             return False
     return True
 
-def deWeight(weights, sol, second):
-    for j in range(numItems):
-        if sol[j] == 1 and second in range(itemList[j]['s'], itemList[j]['e']+1):
-        #if sol[j] == 1 and j in range(itemList[j]['s'], itemList[j]['e']+1):
-            sol[j] = 0
-            for time in range(itemList[j]['s'], itemList[j]['e']+1):
-                weights[time] -= itemList[j]['w']
-            return weights, sol
-
-    print ("deWeight falhou")
-    #print "weights: " + str(weights) + " sol:"+str(sol)
-    exit(1)
-
-def deWeight2(weights, sol, second):
+def deWeight(weights, solution, second):
     for itemIndex in itemIndexesPerSecond[second]:
-        if sol[itemIndex] == 1:
-            sol[j] = 0
+        if solution[itemIndex] == 1:
+            solution[itemIndex] = 0
             for time in range(itemList['s'][itemIndex], itemList['e'][itemIndex]+1):
                 weights[time] -= itemList['w'][itemIndex]
-            return weights, sol
+            return weights, solution
 
     print ("deWeight2 falhou")
-    #print "weights: " + str(weights) + " sol:"+str(sol)
+    #print "weights: " + str(weights) + " solution:"+str(solution)
     exit(1)
 
-def adjustSolution3(sol):
+def adjustSolution(solution):
     # optimized version
     # weights = [0 for i in secondsList]
     weights = {second:0 for second in secondsList}
@@ -105,46 +99,21 @@ def adjustSolution3(sol):
                 weights[second] += itemList['w'][itemIndex]
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
-            weights, sol = deWeight2(weights, sol, second)
-    return sol
+            weights, solution = deWeight(weights, solution, second)
+    return solution
 
-def adjustSolution2(sol):
-    # weights = [0 for i in secondsList]
-    weights = {second:0 for second in secondsList}
-    for i in range(numItems):
-        if sol[i] == 1:
-            for j in range(itemList[i]['s'], itemList[i]['e'] +1 ):
-                weights[j] += itemList[i]['w']
-
-
-    for second in secondsList:
-        while weights[second] > capacity:
-            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
-            weights, sol = deWeight(weights, sol, second)
-    return sol
-
-def adjustSolution(sol):
-    i = random.choice(range(numItems))
-    while(sol[i] != 1):
-        if (i < numItems-1):
-            i += 1
-        else:
-            i = 0
-    sol[i] = 0
-    return sol
-
-def getSolutionValue(sol):
+def getSolutionValue(solution):
     #get total backpack value for a solution
     solutionValue = 0
-    for i in range(numItems):
-        if sol[i]:
-            solutionValue += itemList[i]['v']
+    for itemIndex in range(numItems):
+        if solution[itemIndex]:
+            solutionValue += itemList['v'][itemIndex]
     return solutionValue
 
 def evaluatePopulation():
     for i in range(populationSize):
         #  while not isSolutionValid(population[i]): #solucao invalida, acima da capacidade
-        population[i] = adjustSolution2(population[i])
+        population[i] = adjustSolution(population[i])
         populationValues[i] = int(getSolutionValue(population[i]))
         """if not isSolutionValid(population[i]):
             populationValues[i] = 1
@@ -248,7 +217,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("\n --- gena.py results ---")
+    print ("\n --- genOtimizado.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))
@@ -264,7 +233,7 @@ def finalPrint():
 
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
-    print "'python genetic.py inputFile seed populationSize'\n\n"
+    print "'python genOtimizado.py inputFile seed populationSize'\n\n"
     sys.exit(1)
 
 
@@ -288,7 +257,7 @@ itemList = getItemList(inp)
 min_s, max_s = getRange()
 secondsList = range(min_s, max_s + 1)
 
-
+itemIndexesPerSecond = getItemIndexesPerSecond()
 
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
