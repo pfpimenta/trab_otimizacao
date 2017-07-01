@@ -26,18 +26,17 @@ def getItemList( inp ): # alt version
     return itemList
 
 def getItemIndexesPerSecond():
-    #
     itemIndexesPerSecond = {second:[] for second in secondsList}
     #for second in secondsList:
     for itemIndex in range(numItems):
         for second in range(itemList['s'][itemIndex],itemList['e'][itemIndex] + 1): #+1 pra incluir o ultimo segundo
             itemIndexesPerSecond[second].append(itemIndex)
-    print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond))
+    #print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond)) #debug
     return itemIndexesPerSecond
 
 def choseWithProb( oneProb ):
-    #  zeroProb = 1 - oneProb
-    #  result = np.random.choice([0,1], 1, p= [zeroProb, oneProb ])[0]
+    # returns 1 with probability == oneProb
+    # returns 0 with probability == (1 - oneProb)
     rand =  random.random()
     if rand <= oneProb:
         return 1
@@ -63,18 +62,6 @@ def generateInitialPopulation():
         new_population.append(solution)
     return new_population
 
-def isSolutionValid(sol):
-    #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    secs = [0 for i in secondsList]
-    for i in range(numItems):
-        if sol[i] == 1:
-            for j in range(itemList[i]['s'], itemList[i]['e'] ):  #  TODO why no  +1 here??? shit goes crazy
-                secs[j] += itemList[i]['w']
-
-    for i in secs :
-        if i > capacity:
-            return False
-    return True
 
 def deWeight(weights, solution, second):
     for itemIndex in itemIndexesPerSecond[second]:
@@ -85,12 +72,11 @@ def deWeight(weights, solution, second):
             return weights, solution
 
     print ("deWeight2 falhou")
-    #print "weights: " + str(weights) + " solution:"+str(solution)
+    #print "weights: " + str(weights) + " solution:"+str(solution) #debug
     exit(1)
 
 def adjustSolution(solution):
     # optimized version
-    # weights = [0 for i in secondsList]
     weights = {second:0 for second in secondsList}
 
     for second in secondsList:
@@ -98,7 +84,7 @@ def adjustSolution(solution):
             if solution[itemIndex] == 1:
                 weights[second] += itemList['w'][itemIndex]
         while weights[second] > capacity:
-            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
+            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second) #debug
             weights, solution = deWeight(weights, solution, second)
     return solution
 
@@ -111,14 +97,10 @@ def getSolutionValue(solution):
     return solutionValue
 
 def evaluatePopulation():
+    #ajusta as solucoes invalidas e avalia cada solucao
     for i in range(populationSize):
-        #  while not isSolutionValid(population[i]): #solucao invalida, acima da capacidade
-        population[i] = adjustSolution(population[i])
+        population[i] = adjustSolution(population[i]) # ajusta solucoes invalidas, acima da capacidade
         populationValues[i] = int(getSolutionValue(population[i]))
-        """if not isSolutionValid(population[i]):
-            populationValues[i] = 1
-        else:
-            populationValues[i] = int(getSolutionValue(population[i]))"""
 
 def crossover(parent1, parent2):
     newSolution = [0 for i in range(numItems)]
@@ -277,7 +259,7 @@ for i in range(NUM_GERACOES):
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
     #print "2"
-    #print populationValues
+    print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
     if endLoop:
