@@ -148,7 +148,7 @@ def generateNewPopulation():
     newPopulation.append(currentSecondSolution)
     newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
     #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    for i in range(populationSize-3): # ja botamos os 2 melhores
+    for i in range(populationSize-3): # ja botamos os 2 melhores + o filho deles
         newSolution = generateNewSolution()
         if(choseWithProb(PROB_MUTACAO)): # TODO
             newSolution = mutation(newSolution)
@@ -156,11 +156,19 @@ def generateNewPopulation():
     global population
     population = newPopulation
 
+def debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue):
+    print ("\ndebug solution values\n")
+    print ("currentBestSolutionValue: "+ str(currentBestSolutionValue))
+    print ("currentSecondSolutionValue: "+ str(currentSecondSolutionValue))
+    print ("bestSolutionValue: " + str(bestSolutionValue))
+    print ("secondSolutionValue: " + str(secondSolutionValue))
+
 
 def endLoopCondition():
     # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     global currentBestSolutionValue, stableSolutionCounter, endLoop, currentBestSolution, currentSecondSolution, currentSecondSolutionValue
     bestSolution, bestSolutionValue, secondSolution, secondSolutionValue = getBestAndSecondSolution()
+    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
         # print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
@@ -172,12 +180,17 @@ def endLoopCondition():
         currentBestSolution = bestSolution
         stableSolutionCounter = 0
 
-    if(bestSolutionValue <  currentBestSolution and bestSolutionValue > currentSecondSolutionValue):
+    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
+
+    if(bestSolutionValue <  currentBestSolutionValue and bestSolutionValue > currentSecondSolutionValue):
         currentSecondSolution = bestSolution
         currentSecondSolutionValue = bestSolutionValue
     elif ( secondSolutionValue > currentSecondSolutionValue):
         currentSecondSolution = secondSolution
         currentSecondSolutionValue = secondSolutionValue
+
+    debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue)
+
 
     #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
     if (stableSolutionCounter >= STABLE_ITERS_STOP):
@@ -265,7 +278,7 @@ for i in range(NUM_GERACOES):
     print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
-    if endLoop:
+    if endLoop: #or i == 1: #debug
         break;
 
     generateNewPopulation()
