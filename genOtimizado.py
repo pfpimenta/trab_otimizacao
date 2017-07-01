@@ -167,25 +167,29 @@ def endLoopCondition():
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
-    else: # currentBestSolution < bestSolution
+    else: # currentBestSolutionValue < bestSolutionValue
         currentBestSolutionValue = bestSolutionValue
+        currentBestSolution = bestSolution
         stableSolutionCounter = 0
+
+    if(bestSolutionValue <  currentBestSolution and bestSolutionValue > currentSecondSolutionValue):
+        currentSecondSolution = bestSolution
+        currentSecondSolutionValue = bestSolutionValue
+    elif ( secondSolutionValue > currentSecondSolutionValue):
+        currentSecondSolution = secondSolution
+        currentSecondSolutionValue = secondSolutionValue
+
     #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
     if (stableSolutionCounter >= STABLE_ITERS_STOP):
         endLoop = 1
     else:
         endLoop = 0
-    currentBestSolutionValue = bestSolutionValue
-    currentBestSolution = bestSolution
-    currentSecondSolutionValue = secondSolutionValue
-    currentSecondSolution = secondSolution
-
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
-    secondBestSolution = list(population[0])
+    secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
-    secondBestSolutionValue = populationValues[0]
+    secondBestSolutionValue = 0
     for i in range(populationSize):
         if(populationValues[i] > bestSolutionValue):
             secondBestSolutionValue = bestSolutionValue
@@ -195,6 +199,7 @@ def getBestAndSecondSolution():
         elif(populationValues[i] < bestSolutionValue and populationValues[i] > secondBestSolutionValue):
             secondBestSolutionValue = populationValues[i]
             secondBestSolution = list(population[i])
+    print ("debug bestSolutionValue:" +str(bestSolutionValue))#debug
     return bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue
 
 def finalPrint():
@@ -252,13 +257,11 @@ currentBestSolution = []
 currentSecondSolutionValue = -1
 currentSecondSolution = []
 endLoop = 0
-#print "1"
 
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    #print "2"
     print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
@@ -266,8 +269,6 @@ for i in range(NUM_GERACOES):
         break;
 
     generateNewPopulation()
-
-    #print "3"
 
 endTime = time.time()
 

@@ -224,7 +224,7 @@ def endLoopCondition():
         endLoop = 1
     else:
         endLoop = 0
-    currentBestSolutionValue = bestSolutionValue
+    currentBestSolutionValue = bestSolutionValue #SEMPRE atualiza?
     currentBestSolution = bestSolution
     currentSecondSolutionValue = secondSolutionValue
     currentSecondSolution = secondSolution
@@ -232,9 +232,9 @@ def endLoopCondition():
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
-    secondBestSolution = list(population[0])
+    secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
-    secondBestSolutionValue = populationValues[0]
+    secondBestSolutionValue = 0
     for i in range(populationSize):
         if(populationValues[i] > bestSolutionValue):
             secondBestSolutionValue = bestSolutionValue
