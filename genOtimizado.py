@@ -31,7 +31,7 @@ def getItemIndexesPerSecond():
     for itemIndex in range(numItems):
         for second in range(itemList['s'][itemIndex],itemList['e'][itemIndex] + 1): #+1 pra incluir o ultimo segundo
             itemIndexesPerSecond[second].append(itemIndex)
-    print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond)) #debug
+    #print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond)) #debug
     return itemIndexesPerSecond
 
 def choseWithProb( oneProb ):
@@ -78,35 +78,13 @@ def deWeight(weights, solution, second):
 def adjustSolution(solution):
     # optimized version
     weights = {second:0 for second in secondsList}
-
-    for second in secondsList:
-        for itemIndex in itemIndexesPerSecond[second]:
-            if solution[itemIndex] == 1:
-                weights[second] += itemList['w'][itemIndex]
-        while weights[second] > capacity:
-            #print "debug weights[second]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second) #debug
-            weights, solution = deWeight(weights, solution, second)
-    return solution
-
-def adjustSolution_debug(solution): #debug
-    # optimized version
-    weights = {second:0 for second in secondsList}
-    print( "debugy10 "+str(debugGetSumSolution(population[0])) +" : "+ str(getSolutionValue(population[0]))) #debug
     for second in secondsList:
         for itemIndex in itemIndexesPerSecond[second]:
             if solution[itemIndex] == 1:
                 weights[second] += itemList['w'][itemIndex]
     for second in secondsList:
         while weights[second] > capacity:
-            print "debugLOKO1 weights[second]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second) #debug
             weights, solution = deWeight(weights, solution, second)
-    for second in secondsList:
-        while weights[second] > capacity:
-            print "debugLOKO2 weights[second]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second) #debug
-            weights, solution = deWeight(weights, solution, second)
-    print("debug21: " +str(weights))
-    print( "debugy11 "+str(debugGetSumSolution(population[0])) +" : "+ str(getSolutionValue(population[0]))) #debug
-
     return solution
 
 def getSolutionValue(solution):
@@ -122,12 +100,7 @@ def evaluatePopulation():
     global populationValues, population
     solution = []
     for i in range(populationSize):
-        #population[i] = adjustSolution(population[i]) # ajusta solucoes invalidas, acima da capacidade
-        if i == 1:#debug
-            population[i] = adjustSolution_debug(population[i])#debug
-
-        else:
-            population[i] = adjustSolution(population[i])
+        population[i] = adjustSolution(population[i])#ajusta solucoes invalidas, acima da capacidade
         populationValues[i] = int(getSolutionValue(population[i]))
 
 def crossover(parent1, parent2):
@@ -172,7 +145,6 @@ def mutation(solution):
 
 def generateNewPopulation():
     newPopulation = []
-    print ("deburguer: " + str(debugGetSumSolution(currentBestSolution)) +" :: " +str(getSolutionValue(currentBestSolution))) #debug
     newPopulation.append(currentBestSolution)
     newPopulation.append(currentSecondSolution)
     newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
@@ -185,38 +157,20 @@ def generateNewPopulation():
     global population
     population = newPopulation
 
-def debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondSolutionValue):
-    print ("\ndebug solution values\n")
-    print ("currentBestSolutionValue: "+ str(currentBestSolutionValue))
-    print ("currentSecondSolutionValue: "+ str(currentSecondSolutionValue))
-    print ("bestSolutionValue: " + str(bestSolutionValue))
-    print ("secondSolutionValue: " + str(secondSolutionValue))
-
-def debugGetSumSolution(solution): #debug
-    sumSolution = 0
-    for value in solution:
-        sumSolution += value
-    return sumSolution
-
 def endLoopCondition():
     # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     global currentBestSolutionValue, stableSolutionCounter, endLoop, currentBestSolution, currentSecondSolution, currentSecondSolutionValue
     bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue = getBestAndSecondSolution()
-    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
-        # print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
+        #print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
-
     else: # currentBestSolutionValue < bestSolutionValue
         currentBestSolutionValue = bestSolutionValue
         currentBestSolution = bestSolution
         stableSolutionCounter = 0
-        print ("predeburguer: " + str(debugGetSumSolution(currentBestSolution))) #debug
-
-    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
 
     if(bestSolutionValue <  currentBestSolutionValue and bestSolutionValue > currentSecondSolutionValue):
         currentSecondSolution = bestSolution
@@ -225,10 +179,6 @@ def endLoopCondition():
         currentSecondSolution = secondBestSolution
         currentSecondSolutionValue = secondBestSolutionValue
 
-    #debugPrintSolutionValues(currentBestSolutionValue, currentSecondSolutionValue, bestSolutionValue, secondBestSolutionValue)
-
-
-    #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
     if (stableSolutionCounter >= STABLE_ITERS_STOP):
         endLoop = 1
     else:
@@ -311,10 +261,11 @@ for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
+    #print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
-    if endLoop or i == 1: #debug
+
+    if endLoop:
         break;
 
     generateNewPopulation()
@@ -323,4 +274,4 @@ endTime = time.time()
 
 totalTime = endTime - startTime
 
-#finalPrint()
+finalPrint()
