@@ -6,10 +6,10 @@ import time
 #metaparametros do aloritmo genetico
 #POPULATION_SIZE = 100
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
-PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
-TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
+PROB_MUTACAO = 0.1 # probabilidade de uma nova solucao sofrer mutacao
+TAXA_MUTACAO = 0.1 # porcentagem de genes q sao alterados por uma mutacao
 PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
-STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
+STABLE_ITERS_STOP =  5 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
 def getItemList( inp ): # alt version
