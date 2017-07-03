@@ -209,7 +209,7 @@ def finalPrint():
     print ("melhor solucao: " +str(currentBestSolution))
     print ( "valor da melhor solucao: "+str(currentBestSolutionValue))
     print ("tempo de execucao: " +str(totalTime))
-
+    print ("numero de geracoes ocorridas: " +str(numGeracoesOcorridas))
 
 
 
@@ -257,6 +257,7 @@ currentSecondSolutionValue = -1
 currentSecondSolution = [0 for i in range(numItems)]
 endLoop = 0
 
+numGeracoesOcorridas = 0
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
@@ -269,6 +270,7 @@ for i in range(NUM_GERACOES):
         break;
 
     generateNewPopulation()
+    numGeracoesOcorridas = i
 
 endTime = time.time()
 
