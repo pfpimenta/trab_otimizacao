@@ -8,8 +8,8 @@ import time
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
-PROB_INITIAL_SOLUTION = 0.99  #  podia ser +-  ==10/numItems
-STABLE_ITERS_STOP =  5 # numero maximo de iteracoes sem mudar a melhor solucao
+PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
+STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
 # group sizes in %
 GROUP_1_SIZE = 20.0
 GROUP_2_SIZE = 70.0
@@ -25,14 +25,15 @@ GROUP_3_PROB = 0.15
 def getItemList( inp ):
     #receives the input instance without the first 2 lines
     #retorns a list of all the items
-    item = { 'value': 0, 'weight': 0, 'startTime': 0, 'endTime': 0}
+    item = { 'v': 0, 'w': 0, 's': 0, 'e': 0}
+    #v: value, w: weight, s: start time, e: end time
     itemList = []
     for line in inp:
         lineWords = line.split(" ")
-        item['value'] = int(lineWords[0])
-        item['weight'] = int(lineWords[1])
-        item['startTime'] = int(lineWords[2])
-        item['endTime'] = int(lineWords[3])
+        item['v'] = int(lineWords[0])
+        item['w'] = int(lineWords[1])
+        item['s'] = int(lineWords[2])
+        item['e'] = int(lineWords[3])
         itemList.append(item.copy())
 
     return itemList
@@ -50,12 +51,11 @@ def getRange ():
     min_s = 9999999999999999
     max_s = -100000
     for item in itemList:
-        if item['startTime'] < min_s:
-            min_s = item['startTime']
-        if item['endTime'] > max_s:
-            max_s = item['endTime']
+        if item['s'] < min_s:
+            min_s = item['s']
+        if item['e'] > max_s:
+            max_s = item['e']
     return min_s, max_s
-
 
 def generateInitialPopulation():
     new_population = []
@@ -72,11 +72,11 @@ def generateInitialPopulation():
 
 def isSolutionValid(sol):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    secs = [0 for i in range(min_s, max_s + 1)]
+    secs = [0 for i in secondsList]
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):  #  TODO why no  +1 here??? shit goes crazy
-                secs[j] += itemList[i]['weight']
+            for j in range(itemList[i]['s'], itemList[i]['e'] ):  #  TODO why no  +1 here??? shit goes crazy
+                secs[j] += itemList[i]['w']
 
     for i in secs :
         if i > capacity:
@@ -85,10 +85,10 @@ def isSolutionValid(sol):
 
 def deWeight(weights, sol, second):
     for j in range(numItems):
-        if sol[j] == 1 and second in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
+        if sol[j] == 1 and second in range(itemList[j]['s'], itemList[j]['e']+1):
             sol[j] = 0
-            for time in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
-                weights[time] -= itemList[j]['weight']
+            for time in range(itemList[j]['s'], itemList[j]['e']+1):
+                weights[time] -= itemList[j]['w']
             return weights, sol
 
     print ("deWeight falhou")
@@ -96,15 +96,15 @@ def deWeight(weights, sol, second):
     exit(1)
 
 def adjustSolution2(sol):
-    # weights = [0 for i in range(min_s, max_s + 1)]
-    weights = {i:0 for i in range(min_s, max_s + 1)}
+    # weights = [0 for i in secondsList]
+    weights = {i:0 for i in secondsList}
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] +1 ):
-                weights[j] += itemList[i]['weight']
+            for j in range(itemList[i]['s'], itemList[i]['e'] +1 ):
+                weights[j] += itemList[i]['w']
 
 
-    for second in range(min_s, max_s + 1):
+    for second in secondsList:
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
             weights, sol = deWeight(weights, sol, second)
@@ -125,7 +125,7 @@ def getSolutionValue(sol):
     solutionValue = 0
     for i in range(numItems):
         if sol[i]:
-            solutionValue += itemList[i]['value']
+            solutionValue += itemList[i]['v']
     return solutionValue
 
 def evaluatePopulation():
@@ -163,29 +163,6 @@ def groupRoulette():
     return index
 
 
-'''def generateNewSolution():
-    sum_v = 0
-    for i in range(populationSize):
-        sum_v += populationValues[i]
-    point1 = random.randint(0,sum_v - 1)
-    point2 = random.randint(0,sum_v - 1)
-    parent1 = 0
-    parent2 = 0
-
-    for i in range(populationSize):
-        if point1 <=0:
-            parent1 = i
-            break;
-        point1 -= populationValues[i]
-    for i in range(populationSize):
-        if point2 <=0:
-            parent2 = i
-            break;
-        point2 -= populationValues[i]
-
-    newSolutiion = crossover(population[parent1],population[parent2])
-    return newSolutiion'''
-
 def generateNewSolutionGroup(population, populationValues, itemList, numItems):
     newSolution = [0 for i in range(numItems)]
     index1 = groupRoulette()
@@ -199,20 +176,6 @@ def mutation(solution):
         randomIndex = random.randint(0,numItems-1)
         solution[randomIndex] = (1 - solution[randomIndex])
     return solution
-
-'''def generateNewPopulation():
-    newPopulation = []
-    newPopulation.append(currentBestSolution)
-    newPopulation.append(currentSecondSolution)
-    newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
-    #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    for i in range(populationSize-3): # ja botamos os 2 melhores
-        newSolution = generateNewSolution()
-        if(choseWithProb(PROB_MUTACAO)): # TODO
-            newSolution = mutation(newSolution)
-        newPopulation.append(list(newSolution))
-    global population
-    population = newPopulation'''
 
 def getGroupSizes():
     # devolve o tamanho dos grupos de uma populacao
@@ -288,9 +251,9 @@ def endLoopCondition():
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
-    secondBestSolution = list(population[0])
+    secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
-    secondBestSolutionValue = populationValues[0]
+    secondBestSolutionValue = 0
     for i in range(populationSize):
         if(populationValues[i] > bestSolutionValue):
             secondBestSolutionValue = bestSolutionValue
@@ -304,7 +267,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("genaGroup.py")
+    print ("\n --- genaGroup.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))
@@ -342,6 +305,7 @@ inp.remove(inp[0])
 itemList = getItemList(inp)
 
 min_s, max_s = getRange()
+secondsList = range(min_s, max_s + 1)
 
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?

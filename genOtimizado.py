@@ -6,33 +6,37 @@ import time
 #metaparametros do aloritmo genetico
 #POPULATION_SIZE = 100
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
-PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
-TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
+PROB_MUTACAO = 0.1 # probabilidade de uma nova solucao sofrer mutacao
+TAXA_MUTACAO = 0.1 # porcentagem de genes q sao alterados por uma mutacao
 PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
-STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
+STABLE_ITERS_STOP =  5 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
-
-
-def getItemList( inp ):
+def getItemList( inp ): # alt version
     #receives the input instance without the first 2 lines
-    #retorns a list of all the items
-    item = { 'v': 0, 'w': 0, 's': 0, 'e': 0}
-    #v: value, w: weight, s: start time, e: end time
-    itemList = []
+    #retorns a dict with 4 lists: of all the items' values, weights, start times, and end times
+    itemList = { 'v': [], 'w': [], 's': [], 'e': []}
+    #v: values, w: weights, s: start times, e: end times
     for line in inp:
         lineWords = line.split(" ")
-        item['v'] = int(lineWords[0])
-        item['w'] = int(lineWords[1])
-        item['s'] = int(lineWords[2])
-        item['e'] = int(lineWords[3])
-        itemList.append(item.copy())
-
+        itemList['v'].append( int(lineWords[0]))
+        itemList['w'].append( int(lineWords[1]))
+        itemList['s'].append( int(lineWords[2]))
+        itemList['e'].append( int(lineWords[3]))
     return itemList
 
+def getItemIndexesPerSecond():
+    itemIndexesPerSecond = {second:[] for second in secondsList}
+    #for second in secondsList:
+    for itemIndex in range(numItems):
+        for second in range(itemList['s'][itemIndex],itemList['e'][itemIndex] + 1): #+1 pra incluir o ultimo segundo
+            itemIndexesPerSecond[second].append(itemIndex)
+    #print ("debug itemIndexesPerSecond: " +str(itemIndexesPerSecond)) #debug
+    return itemIndexesPerSecond
+
 def choseWithProb( oneProb ):
-    #  zeroProb = 1 - oneProb
-    #  result = np.random.choice([0,1], 1, p= [zeroProb, oneProb ])[0]
+    # returns 1 with probability == oneProb
+    # returns 0 with probability == (1 - oneProb)
     rand =  random.random()
     if rand <= oneProb:
         return 1
@@ -42,11 +46,11 @@ def choseWithProb( oneProb ):
 def getRange ():
     min_s = 9999999999999999
     max_s = -100000
-    for item in itemList:
-        if item['s'] < min_s:
-            min_s = item['s']
-        if item['e'] > max_s:
-            max_s = item['e']
+    for i in range(numItems):
+        if itemList['s'][i] < min_s:
+            min_s = itemList['s'][i]
+        if itemList['e'][i] > max_s:
+            max_s = itemList['e'][i]
     return min_s, max_s
 
 
@@ -55,80 +59,49 @@ def generateInitialPopulation():
     for i in range(populationSize):
         #generates a random solution
         solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
-        # nao aceita repetidos:
-        while (solution in new_population):
-            solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
         new_population.append(solution)
-
     return new_population
 
-def isSolutionValid(sol):
-    #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    secs = [0 for i in secondsList]
-    for i in range(numItems):
-        if sol[i] == 1:
-            for j in range(itemList[i]['s'], itemList[i]['e'] ):  #  TODO why no  +1 here??? shit goes crazy
-                secs[j] += itemList[i]['w']
 
-    for i in secs :
-        if i > capacity:
-            return False
-    return True
+def deWeight(weights, solution, second):
+    for itemIndex in itemIndexesPerSecond[second]:
+        if solution[itemIndex] == 1:
+            solution[itemIndex] = 0
+            for time in range(itemList['s'][itemIndex], itemList['e'][itemIndex]+1):
+                weights[time] -= itemList['w'][itemIndex]
+            return weights, solution
 
-def deWeight(weights, sol, second):
-    for j in range(numItems):
-        if sol[j] == 1 and second in range(itemList[j]['s'], itemList[j]['e']+1):
-            sol[j] = 0
-            for time in range(itemList[j]['s'], itemList[j]['e']+1):
-                weights[time] -= itemList[j]['w']
-            return weights, sol
-
-    print ("deWeight falhou")
-    #print "weights: " + str(weights) + " sol:"+str(sol)
+    print ("deWeight2 falhou")
+    #print "weights: " + str(weights) + " solution:"+str(solution) #debug
     exit(1)
 
-def adjustSolution2(sol):
-    # weights = [0 for i in secondsList]
-    weights = {i:0 for i in secondsList}
-    for i in range(numItems):
-        if sol[i] == 1:
-            for j in range(itemList[i]['s'], itemList[i]['e'] +1 ):
-                weights[j] += itemList[i]['w']
-
-
+def adjustSolution(solution):
+    # optimized version
+    weights = {second:0 for second in secondsList}
+    for second in secondsList:
+        for itemIndex in itemIndexesPerSecond[second]:
+            if solution[itemIndex] == 1:
+                weights[second] += itemList['w'][itemIndex]
     for second in secondsList:
         while weights[second] > capacity:
-            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
-            weights, sol = deWeight(weights, sol, second)
-    return sol
+            weights, solution = deWeight(weights, solution, second)
+    return solution
 
-def adjustSolution(sol):
-    i = random.choice(range(numItems))
-    while(sol[i] != 1):
-        if (i < numItems-1):
-            i += 1
-        else:
-            i = 0
-    sol[i] = 0
-    return sol
-
-def getSolutionValue(sol):
+def getSolutionValue(solution):
     #get total backpack value for a solution
     solutionValue = 0
-    for i in range(numItems):
-        if sol[i]:
-            solutionValue += itemList[i]['v']
+    for itemIndex in range(numItems):
+        if solution[itemIndex]:
+            solutionValue += itemList['v'][itemIndex]
     return solutionValue
 
 def evaluatePopulation():
+    #ajusta as solucoes invalidas e avalia cada solucao
+    global populationValues, population
+    solution = []
     for i in range(populationSize):
-        #  while not isSolutionValid(population[i]): #solucao invalida, acima da capacidade
-        population[i] = adjustSolution2(population[i])
+        population[i] = adjustSolution(population[i])#ajusta solucoes invalidas, acima da capacidade
         populationValues[i] = int(getSolutionValue(population[i]))
-        """if not isSolutionValid(population[i]):
-            populationValues[i] = 1
-        else:
-            populationValues[i] = int(getSolutionValue(population[i]))"""
 
 def crossover(parent1, parent2):
     newSolution = [0 for i in range(numItems)]
@@ -176,41 +149,40 @@ def generateNewPopulation():
     newPopulation.append(currentSecondSolution)
     newPopulation.append(crossover(currentBestSolution, currentSecondSolution))
     #populationProbabilities = getSquaredPopulationProbabilities(populationValues) #alternative version
-    for i in range(populationSize-3): # ja botamos os 2 melhores
+    for i in range(populationSize-3): # ja botamos os 2 melhores + o filho deles
         newSolution = generateNewSolution()
         if(choseWithProb(PROB_MUTACAO)): # TODO
             newSolution = mutation(newSolution)
-        # nao aceita repetidos:
-        while (newSolution in newPopulation):
-            newSolution = generateNewSolution()
         newPopulation.append(list(newSolution))
     global population
     population = newPopulation
 
-
 def endLoopCondition():
     # returns stableSolutionCounter, currentBestSolutionValue, and the endLoop
     global currentBestSolutionValue, stableSolutionCounter, endLoop, currentBestSolution, currentSecondSolution, currentSecondSolutionValue
-    bestSolution, bestSolutionValue, secondSolution, secondSolutionValue = getBestAndSecondSolution()
+    bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue = getBestAndSecondSolution()
     if (currentBestSolutionValue == bestSolutionValue):
         stableSolutionCounter += 1
         #print("\n --- bestSolution nao muda a " + str(stableSolutionCounter) + " geracoes ---")
     elif(currentBestSolutionValue > bestSolutionValue):
         print "\n-\n-\nERRO: algo ta errado, a melhor solucao piorou\n-\n-\n-\n-\n-\n-\n-\n-\n-\n-"
         print "current: " +str(currentBestSolutionValue) + "\nnova: " +str(bestSolutionValue) +"\n"
-    else: # currentBestSolution < bestSolution
+    else: # currentBestSolutionValue < bestSolutionValue
         currentBestSolutionValue = bestSolutionValue
+        currentBestSolution = bestSolution
         stableSolutionCounter = 0
-    #print  "debug " +str(stableSolutionCounter) + ", " +str(currentBestSolution) #debug
+
+    if(bestSolutionValue <  currentBestSolutionValue and bestSolutionValue > currentSecondSolutionValue):
+        currentSecondSolution = bestSolution
+        currentSecondSolutionValue = bestSolutionValue
+    elif ( secondBestSolutionValue > currentSecondSolutionValue):
+        currentSecondSolution = secondBestSolution
+        currentSecondSolutionValue = secondBestSolutionValue
+
     if (stableSolutionCounter >= STABLE_ITERS_STOP):
         endLoop = 1
     else:
         endLoop = 0
-    currentBestSolutionValue = bestSolutionValue
-    currentBestSolution = bestSolution
-    currentSecondSolutionValue = secondSolutionValue
-    currentSecondSolution = secondSolution
-
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
@@ -226,17 +198,18 @@ def getBestAndSecondSolution():
         elif(populationValues[i] < bestSolutionValue and populationValues[i] > secondBestSolutionValue):
             secondBestSolutionValue = populationValues[i]
             secondBestSolution = list(population[i])
+    #print ("debug bestSolutionValue:" +str(bestSolutionValue))#debug
     return bestSolution, bestSolutionValue, secondBestSolution, secondBestSolutionValue
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("\n --- genaSemRep.py results ---")
+    print ("\n --- genOtimizado.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))
     print ( "valor da melhor solucao: "+str(currentBestSolutionValue))
     print ("tempo de execucao: " +str(totalTime))
-
+    print ("numero de geracoes ocorridas: " +str(numGeracoesOcorridas))
 
 
 
@@ -246,7 +219,7 @@ def finalPrint():
 
 if (len(sys.argv) < 4 or len(sys.argv) > 4):
     print "\nERRO: numero invalido de argumentos\n"
-    print "'python genetic.py inputFile seed populationSize'\n\n"
+    print "'python genOtimizado.py inputFile seed populationSize'\n\n"
     sys.exit(1)
 
 
@@ -270,6 +243,8 @@ itemList = getItemList(inp)
 min_s, max_s = getRange()
 secondsList = range(min_s, max_s + 1)
 
+itemIndexesPerSecond = getItemIndexesPerSecond()
+
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
 
@@ -277,22 +252,25 @@ population = generateInitialPopulation()
 populationValues = [0 for i in  range(populationSize)]
 stableSolutionCounter = 0 # number of iterations in which the currentBestSolution didnt change
 currentBestSolutionValue = -1
-currentBestSolution = []
+currentBestSolution = [0 for i in range(numItems)]
 currentSecondSolutionValue = -1
-currentSecondSolution = []
+currentSecondSolution = [0 for i in range(numItems)]
 endLoop = 0
 
+numGeracoesOcorridas = 0
 for i in range(NUM_GERACOES):
     #avalia a populacao de solucoes
     #populationValues = evaluatePopulation(population, itemList, capacity, numItems)
     evaluatePopulation()
-    #print populationValues
+    #print ("\n --- geracao " + str(i) + ": \n" +str(populationValues))
 
     endLoopCondition()
+
     if endLoop:
         break;
 
     generateNewPopulation()
+    numGeracoesOcorridas = i
 
 endTime = time.time()
 

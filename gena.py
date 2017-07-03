@@ -8,23 +8,22 @@ import time
 NUM_GERACOES = 100 # nao sei se isso pode #TODO
 PROB_MUTACAO = 0.25 # probabilidade de uma nova solucao sofrer mutacao
 TAXA_MUTACAO = 0.3 # porcentagem de genes q sao alterados por uma mutacao
-PROB_INITIAL_SOLUTION = 0.01  #  podia ser +-  ==10/numItems
-STABLE_ITERS_STOP =  5 # numero maximo de iteracoes sem mudar a melhor solucao
-
-
+PROB_INITIAL_SOLUTION = 0.8  #  podia ser +-  ==10/numItems
+STABLE_ITERS_STOP =  4 # numero maximo de iteracoes sem mudar a melhor solucao
 
 
 def getItemList( inp ):
     #receives the input instance without the first 2 lines
     #retorns a list of all the items
-    item = { 'value': 0, 'weight': 0, 'startTime': 0, 'endTime': 0}
+    item = { 'v': 0, 'w': 0, 's': 0, 'e': 0}
+    #v: value, w: weight, s: start time, e: end time
     itemList = []
     for line in inp:
         lineWords = line.split(" ")
-        item['value'] = int(lineWords[0])
-        item['weight'] = int(lineWords[1])
-        item['startTime'] = int(lineWords[2])
-        item['endTime'] = int(lineWords[3])
+        item['v'] = int(lineWords[0])
+        item['w'] = int(lineWords[1])
+        item['s'] = int(lineWords[2])
+        item['e'] = int(lineWords[3])
         itemList.append(item.copy())
 
     return itemList
@@ -42,10 +41,10 @@ def getRange ():
     min_s = 9999999999999999
     max_s = -100000
     for item in itemList:
-        if item['startTime'] < min_s:
-            min_s = item['startTime']
-        if item['endTime'] > max_s:
-            max_s = item['endTime']
+        if item['s'] < min_s:
+            min_s = item['s']
+        if item['e'] > max_s:
+            max_s = item['e']
     return min_s, max_s
 
 
@@ -54,19 +53,16 @@ def generateInitialPopulation():
     for i in range(populationSize):
         #generates a random solution
         solution = [choseWithProb(PROB_INITIAL_SOLUTION) for j in range(numItems)]
-        #prob = (2/math.sqrt(numItems)) / (1 + 2/math.sqrt(numItems))
-        #solution = [choseWithProb(prob) for j in range(numItems)] # versao alternativa
         new_population.append(solution)
-
     return new_population
 
 def isSolutionValid(sol):
     #returns True if the solution doesn't exceed the cap for any second, False otherwise
-    secs = [0 for i in range(min_s, max_s + 1)]
+    secs = [0 for i in secondsList]
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] ):  #  TODO why no  +1 here??? shit goes crazy
-                secs[j] += itemList[i]['weight']
+            for j in range(itemList[i]['s'], itemList[i]['e'] ):  #  TODO why no  +1 here??? shit goes crazy
+                secs[j] += itemList[i]['w']
 
     for i in secs :
         if i > capacity:
@@ -75,26 +71,53 @@ def isSolutionValid(sol):
 
 def deWeight(weights, sol, second):
     for j in range(numItems):
-        if sol[j] == 1 and second in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
+        if sol[j] == 1 and second in range(itemList[j]['s'], itemList[j]['e']+1):
+        #if sol[j] == 1 and j in range(itemList[j]['s'], itemList[j]['e']+1):
             sol[j] = 0
-            for time in range(itemList[j]['startTime'], itemList[j]['endTime']+1):
-                weights[time] -= itemList[j]['weight']
+            for time in range(itemList[j]['s'], itemList[j]['e']+1):
+                weights[time] -= itemList[j]['w']
             return weights, sol
 
     print ("deWeight falhou")
     #print "weights: " + str(weights) + " sol:"+str(sol)
     exit(1)
 
+def deWeight2(weights, sol, second):
+    for itemIndex in itemIndexesPerSecond[second]:
+        if sol[itemIndex] == 1:
+            sol[j] = 0
+            for time in range(itemList['s'][itemIndex], itemList['e'][itemIndex]+1):
+                weights[time] -= itemList['w'][itemIndex]
+            return weights, sol
+
+    print ("deWeight2 falhou")
+    #print "weights: " + str(weights) + " sol:"+str(sol)
+    exit(1)
+
+def adjustSolution3(sol):
+    # optimized version
+    # weights = [0 for i in secondsList]
+    weights = {second:0 for second in secondsList}
+
+    for second in secondsList:
+        for itemIndex in itemIndexesPerSecond[second]:
+            if solution[itemIndex] == 1:
+                weights[second] += itemList['w'][itemIndex]
+        while weights[second] > capacity:
+            #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
+            weights, sol = deWeight2(weights, sol, second)
+    return sol
+
 def adjustSolution2(sol):
-    # weights = [0 for i in range(min_s, max_s + 1)]
-    weights = {i:0 for i in range(min_s, max_s + 1)}
+    # weights = [0 for i in secondsList]
+    weights = {second:0 for second in secondsList}
     for i in range(numItems):
         if sol[i] == 1:
-            for j in range(itemList[i]['startTime'], itemList[i]['endTime'] +1 ):
-                weights[j] += itemList[i]['weight']
+            for j in range(itemList[i]['s'], itemList[i]['e'] +1 ):
+                weights[j] += itemList[i]['w']
 
 
-    for second in range(min_s, max_s + 1):
+    for second in secondsList:
         while weights[second] > capacity:
             #print "debug weights[i]: " + str(weights[second]) + " capacity:"+str(capacity)+" second: "+str(second)
             weights, sol = deWeight(weights, sol, second)
@@ -115,7 +138,7 @@ def getSolutionValue(sol):
     solutionValue = 0
     for i in range(numItems):
         if sol[i]:
-            solutionValue += itemList[i]['value']
+            solutionValue += itemList[i]['v']
     return solutionValue
 
 def evaluatePopulation():
@@ -201,7 +224,7 @@ def endLoopCondition():
         endLoop = 1
     else:
         endLoop = 0
-    currentBestSolutionValue = bestSolutionValue
+    currentBestSolutionValue = bestSolutionValue #SEMPRE atualiza?
     currentBestSolution = bestSolution
     currentSecondSolutionValue = secondSolutionValue
     currentSecondSolution = secondSolution
@@ -209,9 +232,9 @@ def endLoopCondition():
 
 def getBestAndSecondSolution():
     bestSolution = list(population[0])
-    secondBestSolution = list(population[0])
+    secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
-    secondBestSolutionValue = populationValues[0]
+    secondBestSolutionValue = 0
     for i in range(populationSize):
         if(populationValues[i] > bestSolutionValue):
             secondBestSolutionValue = bestSolutionValue
@@ -225,7 +248,7 @@ def getBestAndSecondSolution():
 
 def finalPrint():
     # pra printar no arquivo os resultados
-    print ("gena.py")
+    print ("\n --- gena.py results ---")
     print ("instancia: " +str(sys.argv[1]))
     print ("population size: " +str(populationSize))
     print ("melhor solucao: " +str(currentBestSolution))
@@ -263,6 +286,9 @@ inp.remove(inp[0])
 itemList = getItemList(inp)
 
 min_s, max_s = getRange()
+secondsList = range(min_s, max_s + 1)
+
+
 
 
 startTime = time.time() # medir o tempo de execucao a partir daqui?
