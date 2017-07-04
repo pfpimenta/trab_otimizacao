@@ -1,6 +1,5 @@
 import sys
 import random
-import math
 import time
 
 #metaparametros do aloritmo genetico
