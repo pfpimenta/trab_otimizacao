@@ -149,10 +149,10 @@ def crossoverHalfPoint(parent1, parent2):
     return newSolution
 
 def crossover(parent1, parent2):
-    return crossoverRandom(parent1,parent2)
+    #return crossoverRandom(parent1,parent2)
     #return crossoverRandomSegment(parent1,parent2)
     #return crossoverRandomPoint(parent1,parent2)
-    #return crossoverHalfPoint(parent1,parent2)
+    return crossoverHalfPoint(parent1,parent2) #versao escolhida
 
 
 def generateNewSolution():
