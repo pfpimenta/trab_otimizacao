@@ -103,15 +103,56 @@ def evaluatePopulation():
         population[i] = adjustSolution(population[i])#ajusta solucoes invalidas, acima da capacidade
         populationValues[i] = int(getSolutionValue(population[i]))
 
-def crossover(parent1, parent2):
+def crossoverRandom(parent1, parent2):
     newSolution = [0 for i in range(numItems)]
-    #  point = random.choice(range(numItems))
+    for i in range(numItems):
+        if (random.random() > 0.5): #50% de chance pra cada pai
+            newSolution[i] = parent1[i]
+        else:
+            newSolution[i] = parent1[i]
+    return newSolution
+
+def crossoverRandomSegment(parent1, parent2):
+    newSolution = [0 for i in range(numItems)]
+    point1 = random.choice(range(numItems))
+    point2 = random.choice(range(numItems))
+    if point1 > point2: # garante que o ponto 2 eh dps do 1
+        temp = point1
+        point1 = point2
+        point2 = temp
+
+    for i in range(point1):
+        newSolution[i] = parent1[i]
+    for i in range(point1, point2):
+        newSolution[i] = parent2[i]
+    for i in range(point2, numItems):
+        newSolution[i] = parent1[i]
+
+    return newSolution
+
+def crossoverRandomPoint(parent1, parent2):
+    newSolution = [0 for i in range(numItems)]
+    point = random.choice(range(numItems))
+    for i in range(point):
+        newSolution[i] = parent1[i]
+    for i in range(point, numItems):
+        newSolution[i] = parent2[i]
+    return newSolution
+
+def crossoverHalfPoint(parent1, parent2):
+    newSolution = [0 for i in range(numItems)]
     point = numItems/2
     for i in range(point):
         newSolution[i] = parent1[i]
     for i in range(point, numItems):
         newSolution[i] = parent2[i]
     return newSolution
+
+def crossover(parent1, parent2):
+    return crossoverRandom(parent1,parent2)
+    #return crossoverRandomSegment(parent1,parent2)
+    #return crossoverRandomPoint(parent1,parent2)
+    #return crossoverHalfPoint(parent1,parent2)
 
 
 def generateNewSolution():
