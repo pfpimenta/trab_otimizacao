@@ -1,0 +1,10 @@
+python genOtimizado.py tkp_instances/U2 8 200 > genOtimizado_U2_8_200.txt
+python genOtimizado.py tkp_instances/U100 8 200 > genOtimizado_U100_8_200.txt
+python genOtimizado.py tkp_instances/I5 8 200 > genOtimizado_I5_8_200.txt
+python genOtimizado.py tkp_instances/I25 8 200 > genOtimizado_I25_8_200.txt
+python genOtimizado.py tkp_instances/I72 8 200 > genOtimizado_I72_8_200.txt
+python genOtimizado.py tkp_instances/I90 8 200 > genOtimizado_I90_8_200.txt
+python genOtimizado.py tkp_instances/I100 8 200 > genOtimizado_I100_8_200.txt
+python genOtimizado.py tkp_instances/HB5000 8 200 > genOtimizado_HB5000_8_200.txt
+python genOtimizado.py tkp_instances/HB10000 8 200 > genOtimizado_HB10000_8_200.txt
+python genOtimizado.py tkp_instances/HB15000 8 200 > genOtimizado_HB15000_8_200.txt
