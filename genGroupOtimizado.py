@@ -33,6 +33,8 @@ def getItemList( inp ): # alt version
     return itemList
 
 def getItemIndexesPerSecond():
+    #retorna a um dicionario que para cada segundo tem uma lista
+    # de itens que ocupam esse tal segundo
     itemIndexesPerSecond = {second:[] for second in secondsList}
     #for second in secondsList:
     for itemIndex in range(numItems):
@@ -51,6 +53,7 @@ def choseWithProb( oneProb ):
         return 0
 
 def getRange ():
+    # retorna o intervalo total de tempo da instancia
     min_s = 9999999999999999
     max_s = -100000
     for i in range(numItems):
@@ -62,6 +65,7 @@ def getRange ():
 
 
 def generateInitialPopulation():
+    #retorna a nova populacao inicial
     new_population = []
     for i in range(populationSize):
         #generates a random solution
@@ -71,6 +75,7 @@ def generateInitialPopulation():
 
 
 def deWeight(weights, solution, second):
+    #retira um item de uma mochila (solucao) para diminuir o peso
     for itemIndex in itemIndexesPerSecond[second]:
         if solution[itemIndex] == 1:
             solution[itemIndex] = 0
@@ -83,7 +88,7 @@ def deWeight(weights, solution, second):
     exit(1)
 
 def adjustSolution(solution):
-    # optimized version
+    # retorna a mesma solucao sem alguns itens, e de acordo c a capacidade
     weights = {second:0 for second in secondsList}
     for second in secondsList:
         for itemIndex in itemIndexesPerSecond[second]:
@@ -111,6 +116,7 @@ def evaluatePopulation():
         populationValues[i] = int(getSolutionValue(population[i]))
 
 def crossoverRandom(parent1, parent2):
+    #pega os genes aleatoriamenta do pai1 e pai2
     newSolution = [0 for i in range(numItems)]
     for i in range(numItems):
         if (random.random() > 0.5): #50% de chance pra cada pai
@@ -120,6 +126,7 @@ def crossoverRandom(parent1, parent2):
     return newSolution
 
 def crossoverRandomSegment(parent1, parent2):
+    #pega um segmento do pai2 e o resto do pai1
     newSolution = [0 for i in range(numItems)]
     point1 = random.choice(range(numItems))
     point2 = random.choice(range(numItems))
@@ -138,6 +145,7 @@ def crossoverRandomSegment(parent1, parent2):
     return newSolution
 
 def crossoverRandomPoint(parent1, parent2):
+    #ponto aleatorio
     newSolution = [0 for i in range(numItems)]
     point = random.choice(range(numItems))
     for i in range(point):
@@ -147,6 +155,7 @@ def crossoverRandomPoint(parent1, parent2):
     return newSolution
 
 def crossoverHalfPoint(parent1, parent2):
+    #pega a primeira metade de genes do pai1 e a segunda do pai2
     newSolution = [0 for i in range(numItems)]
     point = numItems/2
     for i in range(point):
@@ -162,36 +171,16 @@ def crossover(parent1, parent2):
     return crossoverHalfPoint(parent1,parent2) #versao escolhida
 
 
-def generateNewSolution():
-    sum_v = 0
-    for i in range(populationSize):
-        sum_v += populationValues[i]
-    point1 = random.randint(0,sum_v - 1)
-    point2 = random.randint(0,sum_v - 1)
-    parent1 = 0
-    parent2 = 0
-
-    for i in range(populationSize):
-        if point1 <=0:
-            parent1 = i
-            break;
-        point1 -= populationValues[i]
-    for i in range(populationSize):
-        if point2 <=0:
-            parent2 = i
-            break;
-        point2 -= populationValues[i]
-
-    newSolutiion = crossover(population[parent1],population[parent2])
-    return newSolutiion
 
 def mutation(solution):
+    # retorna a solucao com uma mutacao (alguns bits flipados)
     for i in range(int(numItems*TAXA_MUTACAO)):
         randomIndex = random.randint(0,numItems-1)
         solution[randomIndex] = (1 - solution[randomIndex])
     return solution
 
 def groupRoulette():
+    #escolhe um dos 3 grupos pseudoaleatoriamente
     rand = random.random()
     groupSizes = getGroupSizes()
     if (rand - GROUP_1_PROB <= 0): #group 1
@@ -207,6 +196,7 @@ def groupRoulette():
 
 
 def generateNewSolutionGroup(population, populationValues):
+    #gera uma nova solucao
     index1 = groupRoulette()
     index2 = groupRoulette()
     #print ("debug indexes: " + str(index1) +", "+str(index2)) #debug
@@ -278,6 +268,7 @@ def endLoopCondition():
         endLoop = 0
 
 def getBestAndSecondSolution():
+    #retorna a melhor e a segunda melhor solucao da populacao atual
     bestSolution = list(population[0])
     secondBestSolution = [0 for i in range(numItems)]
     bestSolutionValue = populationValues[0]
